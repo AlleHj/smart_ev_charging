@@ -1,15 +1,16 @@
-"""pytest-homeassistant-custom-component-specifika fixtures."""
-from pathlib import Path
-import sys
-
+"""Globala fixtures för Smart EV Charging tester."""
 import pytest
+from homeassistant import loader
 
-# Lägg till 'config' mappen i Pythons sökväg
-# Detta gör så att testerna kan importera från custom_components
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
-
-# Denna "magiska" fixture aktiverar laddning av custom integrations i testmiljön
 @pytest.fixture(autouse=True)
-def auto_enable_custom_integrations(enable_custom_integrations):
-    """Enable loading of custom integrations."""
-    return
+def auto_enable_custom_integrations(hass, enable_custom_integrations):
+    """Aktiverar custom integrations automatiskt för alla tester."""
+    # Vi säkerställer att cachen för integratonsladdaren rensas
+    if loader.DATA_CUSTOM_COMPONENTS in hass.data:
+        hass.data.pop(loader.DATA_CUSTOM_COMPONENTS)
+    yield
+
+@pytest.fixture
+def asyncio_default_fixture_loop_scope():
+    """Sätter scope för asyncio till function (löser varningsmeddelandet)."""
+    return "function"
