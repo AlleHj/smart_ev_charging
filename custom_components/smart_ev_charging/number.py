@@ -85,7 +85,8 @@ class MaxPriceNumberEntity(RestoreNumber, NumberEntity):
             self._attr_native_value = round(value, len(str(PRICE_STEP).split('.')[-1]) if '.' in str(PRICE_STEP) else 0) # Avrunda till stegprecision
             self.async_write_ha_state()
             _LOGGER.info("%s satt till: %s %s", self.name, self._attr_native_value, self._attr_native_unit_of_measurement)
-        else: _LOGGER.warning("Ogiltigt värde för %s: %s. Tillåtet intervall: %s-%s.", self.name, value, self._attr_native_min_value, self._attr_native_max_value)
+        else:
+            _LOGGER.warning("Ogiltigt värde för %s: %s. Tillåtet intervall: %s-%s.", self.name, value, self._attr_native_min_value, self._attr_native_max_value)
 
 class SolarSurplusBufferNumberEntity(RestoreNumber, NumberEntity):
     _attr_should_poll = False
@@ -123,7 +124,8 @@ class SolarSurplusBufferNumberEntity(RestoreNumber, NumberEntity):
             self._attr_native_value = round(value / SOLAR_BUFFER_STEP) * SOLAR_BUFFER_STEP # Säkerställ att det är en jämn multipel av steget
             self.async_write_ha_state()
             _LOGGER.info("%s satt till: %s %s", self.name, self._attr_native_value, self._attr_native_unit_of_measurement)
-        else: _LOGGER.warning("Ogiltigt värde för %s: %s. Tillåtet intervall: %s-%s.", self.name, value, self._attr_native_min_value, self._attr_native_max_value)
+        else:
+            _LOGGER.warning("Ogiltigt värde för %s: %s. Tillåtet intervall: %s-%s.", self.name, value, self._attr_native_min_value, self._attr_native_max_value)
 
 class MinSolarChargeCurrentNumberEntity(RestoreNumber, NumberEntity):
     _attr_should_poll = False
@@ -161,4 +163,5 @@ class MinSolarChargeCurrentNumberEntity(RestoreNumber, NumberEntity):
             self._attr_native_value = round(value / SOLAR_CURRENT_A_STEP) * SOLAR_CURRENT_A_STEP
             self.async_write_ha_state()
             _LOGGER.info("%s satt till: %s %s", self.name, self._attr_native_value, self._attr_native_unit_of_measurement)
-        else: _LOGGER.warning("Ogiltigt värde för %s: %s. Tillåtet intervall: %s-%s A.", self.name, value, self._attr_native_min_value, self._attr_native_max_value)
+        else:
+            _LOGGER.warning("Ogiltigt värde för %s: %s. Tillåtet intervall: %s-%s A.", self.name, value, self._attr_native_min_value, self._attr_native_max_value)

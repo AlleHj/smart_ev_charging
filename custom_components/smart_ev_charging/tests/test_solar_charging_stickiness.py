@@ -6,7 +6,23 @@ under starttröskeln, utan fortsätter med lägre ström.
 from datetime import timedelta
 
 # Importera relevanta konstanter och klasser
-from custom_components.smart_ev_charging.const import *
+from custom_components.smart_ev_charging.const import (
+    CONF_CHARGER_DEVICE,
+    CONF_CHARGER_ENABLED_SWITCH_ID,
+    CONF_HOUSE_POWER_SENSOR,
+    CONF_SOLAR_PRODUCTION_SENSOR,
+    CONF_STATUS_SENSOR,
+    DOMAIN,
+    EASEE_STATUS_CHARGING,
+    EASEE_STATUS_READY_TO_CHARGE,
+    ENTITY_ID_SUFFIX_ENABLE_SOLAR_CHARGING_SWITCH,
+    ENTITY_ID_SUFFIX_MIN_SOLAR_CHARGE_CURRENT_A_NUMBER,
+    ENTITY_ID_SUFFIX_SMART_ENABLE_SWITCH,
+    ENTITY_ID_SUFFIX_SOLAR_BUFFER_NUMBER,
+    PHASES,
+    SOLAR_SURPLUS_DELAY_SECONDS,
+    VOLTAGE_PHASE_NEUTRAL,
+)
 from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
 import pytest
 from pytest_homeassistant_custom_component.common import (
@@ -160,17 +176,3 @@ async def test_solar_charging_does_not_stop_on_minor_dip(
     assert set_current_calls[0].data["current"] == 8, (
         f"Förväntade 8A, men fick {set_current_calls[0].data['current']}A."
     )
-
-    # # --- 3. STOPP: Överskott för 1A ---
-    # print("TESTSTEG 3: Överskottet försvinner (1A). Laddningen ska PAUSAS.")
-    # power_needed_for_1A = power_for_current(1) + house_consumption + solar_buffer
-    # hass.states.async_set(MOCK_SOLAR_SENSOR_ID, str(power_needed_for_1A))
-
-    # await coordinator.async_refresh()
-    # await hass.async_block_till_done()
-
-    # # FÖRVÄNTAT RESULTAT: NU ska ett "pause"-kommando skickas.
-    # assert (
-    #     len(action_command_calls) == 1
-    #     and action_command_calls[0].data["action_command"] == "pause"
-    # )
