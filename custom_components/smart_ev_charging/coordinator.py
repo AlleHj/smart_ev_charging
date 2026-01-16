@@ -109,6 +109,17 @@ class SmartEVChargingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.min_solar_charge_current_entity_id: str | None = None
         self._internal_entities_resolved: bool = False
 
+    async def cleanup(self) -> None:
+        """Rensar upp resurser (lyssnare etc.) när koordinatorn stängs ner."""
+        if self._debug_logging:
+            _LOGGER.debug("Rensar upp SmartEVChargingCoordinator...")
+
+        # Om du har några event listeners (unsubscribes) sparade, anropa dem här.
+        # Exempel:
+        # if self._unsub_some_listener:
+        #     self._unsub_some_listener()
+        #     self._unsub_some_listener = None
+        pass
     # Lägg till denna nya metod i SmartEVChargingCoordinator-klassen i coordinator.py
     # (t.ex. före _control_charger eller _async_update_data)
     # Justerad version av _calculate_solar_charging_action i SmartEVChargingCoordinator
