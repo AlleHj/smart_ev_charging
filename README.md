@@ -1,4 +1,4 @@
-![Version](https://img.shields.io/badge/version-0.2.4-blue.svg)
+![Version](https://img.shields.io/badge/version-0.2.5-blue.svg)
 ![Home Assistant](https://img.shields.io/badge/home%20assistant-component-orange.svg)
 
 # Avancerad Elbilsladdning för Home Assistant
