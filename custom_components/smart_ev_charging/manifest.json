@@ -7,6 +7,5 @@
   "version": "0.2.0",
   "config_flow": true,
   "documentation": "https://github.com/AlleHj/home-assistant-smart_ev_charging/blob/master/HELP.md",
-  "loggers": ["custom_components.smart_ev_charging"],
-  "translations": "translations"
+  "loggers": ["custom_components.smart_ev_charging"]
 }
