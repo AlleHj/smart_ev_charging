@@ -817,8 +817,6 @@ class SmartEVChargingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     }
                 )
 
-        # Hämtar den nuvarande tiden i UTC-format. Används för tidsbaserade jämförelser.
-        current_time = dt_util.utcnow()
         # Hämtar entity_id för laddarens statussensor från konfigurationen.
         charger_status_sensor_id = self.config.get(CONF_STATUS_SENSOR)
         # Hämtar tillståndsobjektet för statussensorn från Home Assistant.
