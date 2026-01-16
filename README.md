@@ -1,3 +1,6 @@
+![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)
+![Home Assistant](https://img.shields.io/badge/home%20assistant-component-orange.svg)
+
 # Avancerad Elbilsladdning för Home Assistant
 
 Detta är en anpassad integration (custom component) för Home Assistant som möjliggör avancerad styrning av elbilsladdning, primärt med fokus på Easee-laddboxar.
