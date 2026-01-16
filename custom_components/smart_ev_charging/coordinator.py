@@ -1,65 +1,69 @@
-# File version: 2025-06-05 0.2.0
+# File version: 2025-06-05 0.2.0 // ÄNDRA HÄR
 
-import asyncio
-from datetime import datetime, timedelta
 import logging
+from datetime import timedelta, datetime
+from typing import Any, cast, Callable
 import math
-from typing import Any, cast
+import asyncio
 
+from homeassistant.core import HomeAssistant, Event, CALLBACK_TYPE, callback
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    ATTR_ENTITY_ID,
-    SERVICE_TURN_ON,
-    STATE_OFF,
-    STATE_ON,
-    STATE_UNAVAILABLE,
-    STATE_UNKNOWN,
-    UnitOfPower,
-)
-from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant, callback
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.helpers.entity_registry import (
-    EntityRegistry,
     async_get as async_get_entity_registry,
+    EntityRegistry,
 )
 from homeassistant.helpers.event import async_track_state_change_event
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.const import (
+    STATE_ON,
+    STATE_OFF,
+    STATE_UNAVAILABLE,
+    STATE_UNKNOWN,
+    SERVICE_TURN_ON,
+    SERVICE_TURN_OFF,
+    ATTR_ENTITY_ID,
+    UnitOfPower,
+)
 import homeassistant.util.dt as dt_util
 
 from .const import (
+    DOMAIN,
     CONF_CHARGER_DEVICE,
-    CONF_CHARGER_DYNAMIC_CURRENT_SENSOR,
-    CONF_CHARGER_ENABLED_SWITCH_ID,
-    CONF_CHARGER_MAX_CURRENT_LIMIT_SENSOR,
-    CONF_DEBUG_LOGGING,
-    CONF_EV_SOC_SENSOR,
-    CONF_HOUSE_POWER_SENSOR,
+    CONF_STATUS_SENSOR,
     CONF_PRICE_SENSOR,
+    CONF_TIME_SCHEDULE_ENTITY,
+    CONF_HOUSE_POWER_SENSOR,
     CONF_SOLAR_PRODUCTION_SENSOR,
     CONF_SOLAR_SCHEDULE_ENTITY,
-    CONF_STATUS_SENSOR,
+    CONF_CHARGER_MAX_CURRENT_LIMIT_SENSOR,
+    CONF_CHARGER_DYNAMIC_CURRENT_SENSOR,
+    CONF_SCAN_INTERVAL,
+    CONF_CHARGER_ENABLED_SWITCH_ID,
+    CONF_EV_SOC_SENSOR,
     CONF_TARGET_SOC_LIMIT,
-    CONF_TIME_SCHEDULE_ENTITY,
-    CONTROL_MODE_MANUAL,
+    ENTITY_ID_SUFFIX_SMART_ENABLE_SWITCH,
+    ENTITY_ID_SUFFIX_MAX_PRICE_NUMBER,
+    ENTITY_ID_SUFFIX_ENABLE_SOLAR_CHARGING_SWITCH,
+    ENTITY_ID_SUFFIX_SOLAR_BUFFER_NUMBER,
+    ENTITY_ID_SUFFIX_MIN_SOLAR_CHARGE_CURRENT_A_NUMBER,
+    ENTITY_ID_SUFFIX_ACTIVE_CONTROL_MODE_SENSOR,
+    EASEE_STATUS_DISCONNECTED,
+    EASEE_STATUS_AWAITING_START,
+    EASEE_STATUS_READY_TO_CHARGE,
+    EASEE_STATUS_CHARGING,
+    EASEE_STATUS_PAUSED,
+    EASEE_STATUS_COMPLETED,
+    EASEE_STATUS_ERROR,
+    EASEE_STATUS_OFFLINE,
     CONTROL_MODE_PRICE_TIME,
     CONTROL_MODE_SOLAR_SURPLUS,
-    DOMAIN,
-    EASEE_STATUS_AWAITING_START,
-    EASEE_STATUS_CHARGING,
-    EASEE_STATUS_COMPLETED,
-    EASEE_STATUS_DISCONNECTED,
-    EASEE_STATUS_OFFLINE,
-    EASEE_STATUS_PAUSED,
-    EASEE_STATUS_READY_TO_CHARGE,
-    ENTITY_ID_SUFFIX_ENABLE_SOLAR_CHARGING_SWITCH,
-    ENTITY_ID_SUFFIX_MAX_PRICE_NUMBER,
-    ENTITY_ID_SUFFIX_MIN_SOLAR_CHARGE_CURRENT_A_NUMBER,
-    ENTITY_ID_SUFFIX_SMART_ENABLE_SWITCH,
-    ENTITY_ID_SUFFIX_SOLAR_BUFFER_NUMBER,
-    MAX_CHARGE_CURRENT_A_HW_DEFAULT,
+    CONTROL_MODE_MANUAL,
     MIN_CHARGE_CURRENT_A,
-    PHASES,
+    MAX_CHARGE_CURRENT_A_HW_DEFAULT,
     POWER_MARGIN_W,
+    PHASES,
     VOLTAGE_PHASE_NEUTRAL,
+    CONF_DEBUG_LOGGING,
 )
 
 _LOGGER = logging.getLogger(f"custom_components.{DOMAIN}")
@@ -109,17 +113,6 @@ class SmartEVChargingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.min_solar_charge_current_entity_id: str | None = None
         self._internal_entities_resolved: bool = False
 
-    async def cleanup(self) -> None:
-        """Rensar upp resurser (lyssnare etc.) när koordinatorn stängs ner."""
-        if self._debug_logging:
-            _LOGGER.debug("Rensar upp SmartEVChargingCoordinator...")
-
-        # Om du har några event listeners (unsubscribes) sparade, anropa dem här.
-        # Exempel:
-        # if self._unsub_some_listener:
-        #     self._unsub_some_listener()
-        #     self._unsub_some_listener = None
-        pass
     # Lägg till denna nya metod i SmartEVChargingCoordinator-klassen i coordinator.py
     # (t.ex. före _control_charger eller _async_update_data)
     # Justerad version av _calculate_solar_charging_action i SmartEVChargingCoordinator
@@ -133,7 +126,8 @@ class SmartEVChargingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         charger_hw_max_amps: float,
         price_time_conditions_met: bool,
     ) -> str:
-        """Bestämmer laddningsåtgärd baserat på solenergi.
+        """
+        Bestämmer laddningsåtgärd baserat på solenergi.
         Startar solenergiladdning omedelbart om villkoren är uppfyllda.
         Uppdaterar self.should_charge_flag, self.target_charge_current_a, etc.
         Returnerar reason_for_action.
@@ -368,10 +362,11 @@ class SmartEVChargingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         "Konfigurationsnyckel %s för nummer är inte satt (resulterade i tomt entitets-ID).",
                         entity_id_or_key,
                     )
-            elif self._debug_logging:
-                _LOGGER.debug(
-                    "Entitets-ID för nummer är inte satt (var None/tomt)."
-                )
+            else:
+                if self._debug_logging:
+                    _LOGGER.debug(
+                        "Entitets-ID för nummer är inte satt (var None/tomt)."
+                    )
             return default_value
 
         state_obj = self.hass.states.get(str(entity_id_to_check))
@@ -644,6 +639,58 @@ class SmartEVChargingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
                 is_paused_manually = await self._is_manually_paused()
 
+                # # Definierar en inre asynkron funktion för att sätta strömmen om det behövs.
+                # # Detta görs för att undvika kodupprepning.
+                # async def set_current_if_needed_locally():
+                #     # Kontrollerar om den nuvarande dynamiska gränsen är okänd (None)
+                #     # ELLER om den avrundade nuvarande dynamiska gränsen skiljer sig från den avrundade målströmmen.
+                #     # Jämför med en decimals precision.
+                #     if current_dynamic_limit is None or round(
+                #         current_dynamic_limit, 1
+                #     ) != round(current_a, 1):
+                #         # Om strömmen behöver ändras, logga detta.
+                #         _LOGGER.debug(
+                #             "Målström (%.1fA) skiljer sig från nuvarande dynamiska gräns (%.1fA) eller nuvarande är okänd. Skickar uppdatering.",
+                #             current_a,  # Målström.
+                #             current_dynamic_limit
+                #             if current_dynamic_limit is not None
+                #             else -1.0,  # Nuvarande dynamisk gräns, eller -1.0 om okänd.
+                #         )
+                #         # Denna del är utkommenterad, representerar ett tidigare sätt att anropa tjänsten.
+                #         # await self.hass.services.async_call(
+                #         #     "easee",
+                #         #     EASEE_SERVICE_SET_DYNAMIC_CURRENT, # Konstant för tjänstenamnet.
+                #         #     {
+                #         #         "device_id": self.config.get(CONF_CHARGER_DEVICE),
+                #         #         "circuit_id": 1, # Easee-specifik parameter.
+                #         #         "currentP1": current_a, # Ström för fas 1.
+                #         #         "currentP2": current_a, # Ström för fas 2.
+                #         #         "currentP3": current_a, # Ström för fas 3.
+                #         #     },
+                #         #     blocking=False,
+                #         # )
+                #         # Anropar Easee-tjänsten för att sätta den dynamiska laddningsgränsen.
+                #         # Detta är den aktiva koden för att sätta ström, baserat på användarens tidigare input.
+                #         await self.hass.services.async_call(
+                #             "easee",  # Domänen för Easee-integrationen.
+                #             "set_charger_dynamic_limit",  # Specifikt tjänstenamn.
+                #             {
+                #                 "device_id": self.config.get(
+                #                     CONF_CHARGER_DEVICE
+                #                 ),  # Enhets-ID för laddaren.
+                #                 "current": current_a,  # Den nya strömgränsen.
+                #                 "time_to_live": 0,  # Parameter för hur länge gränsen ska gälla (0 = tills vidare).
+                #             },
+                #             blocking=False,  # Kör anropet asynkront utan att vänta på svar.
+                #         )
+                #     # Om målströmmen redan är satt:
+                #     else:
+                #         # Logga att ingen uppdatering av strömmen behövs.
+                #         _LOGGER.debug(
+                #             "Målström (%.1fA) är redan satt enligt dynamisk gränssensor. Ingen uppdatering behövs.",
+                #             current_a,
+                #         )
+
                 # Fall 1: Laddaren är manuellt pausad, men vi vill ladda. Ta över!
                 if is_paused_manually:
                     _LOGGER.info(
@@ -680,11 +727,12 @@ class SmartEVChargingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                                 current_to_set_on_charger,
                             )
                         await set_dynamic_current_on_charger(current_to_set_on_charger)
-                    elif self._debug_logging:
-                        _LOGGER.debug(
-                            "Laddning pågår med korrekt ström (Mode: %s).",
-                            self.active_control_mode_internal,
-                        )
+                    else:
+                        if self._debug_logging:
+                            _LOGGER.debug(
+                                "Laddning pågår med korrekt ström (Mode: %s).",
+                                self.active_control_mode_internal,
+                            )
 
                 # Fall 4: Laddaren väntar på start, men INTE pga manuell paus (dvs ström för låg).
                 elif (
@@ -718,12 +766,13 @@ class SmartEVChargingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         )
 
                 # Fall 5: Annan status, t.ex. frånkopplad, error. Logga bara.
-                elif self._debug_logging:
-                    _LOGGER.debug(
-                        "Laddning begärd (Mode: %s), men laddarstatus är '%s'. Inväntar lämpligt tillstånd.",
-                        self.active_control_mode_internal,
-                        charger_status,
-                    )
+                else:
+                    if self._debug_logging:
+                        _LOGGER.debug(
+                            "Laddning begärd (Mode: %s), men laddarstatus är '%s'. Inväntar lämpligt tillstånd.",
+                            self.active_control_mode_internal,
+                            charger_status,
+                        )
 
                 # Uppdatera sessionstiden om en ny session startar
                 if (
@@ -737,58 +786,152 @@ class SmartEVChargingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     )
                     self.session_start_time_utc = dt_util.utcnow()
 
+                # # Kontrollerar om laddarens status indikerar att den är redo att starta/återuppta laddning.
+                # # EASEE_STATUS_READY_TO_CHARGE etc. är listor eller strängar med kända statusvärden.
+                # if (
+                #     charger_status
+                #     in EASEE_STATUS_READY_TO_CHARGE  # Är laddaren redo? (kan vara en lista av statusar)
+                #     or charger_status
+                #     == EASEE_STATUS_AWAITING_START  # Väntar den på startsignal?
+                #     or charger_status == EASEE_STATUS_PAUSED  # Är den pausad?
+                #     or charger_status
+                #     == EASEE_STATUS_COMPLETED  # Är den precis klar med en session?
+                # ):
+                #     # Om ja, logga att vi startar/återupptar eller justerar ström.
+                #     _LOGGER.info(
+                #         "Startar/återupptar laddning eller justerar ström till %.1fA. Anledning: %s. Status: %s",
+                #         current_a,  # Målström.
+                #         reason,  # Anledning till åtgärden.
+                #         charger_status,  # Nuvarande status.
+                #     )
+                #     # Anropa den inre funktionen för att sätta strömmen om det behövs.
+                #     await set_current_if_needed_locally()
+                #     # Om laddaren inte redan aktivt laddar:
+                #     if charger_status != EASEE_STATUS_CHARGING:
+                #         # Denna del är utkommenterad, representerar ett tidigare sätt att anropa tjänsten.
+                #         # await self.hass.services.async_call(
+                #         #     "easee",
+                #         #     EASEE_SERVICE_RESUME_CHARGING, # Konstant för resume-tjänsten.
+                #         #     {"charger_id": self.config.get(CONF_CHARGER_DEVICE)}, # Äldre parameter för laddar-ID.
+                #         #     blocking=False,
+                #         # )
+                #         # Anropar Easee-tjänsten för att starta/återuppta laddningen.
+                #         # Detta är den aktiva koden, baserat på användarens tidigare input.
+                #         await self.hass.services.async_call(
+                #             "easee",  # Domänen för Easee.
+                #             "action_command",  # Tjänstenamn för generiska kommandon.
+                #             {
+                #                 "device_id": self.config.get(
+                #                     CONF_CHARGER_DEVICE
+                #                 ),  # Enhets-ID.
+                #                 "action_command": "start",  # Kommando för att starta.
+                #             },
+                #             blocking=False,  # Kör asynkront.
+                #         )
+                #     # Hanterar logik för att markera starten på en ny laddningssession.
+                #     if (
+                #         self.session_start_time_utc is None
+                #     ):  # Om ingen sessionstid är satt (dvs. ny session).
+                #         # Logga att en ny session startas.
+                #         _LOGGER.info(
+                #             "Startar ny laddningssession. Anledning: %s",
+                #             f"Laddning startad/återupptagen ({reason})",
+                #         )
+                #         # Sätt starttiden för sessionen till nuvarande tid (UTC).
+                #         self.session_start_time_utc = dt_util.utcnow()
+
+                # # Om laddaren redan aktivt laddar (EASEE_STATUS_CHARGING):
+                # elif charger_status == EASEE_STATUS_CHARGING:
+                #     # Logga att vi justerar strömmen om det behövs.
+                #     _LOGGER.debug(
+                #         "Laddning pågår. Justerar dynamisk ström vid behov till %.1fA. Anledning: %s",
+                #         current_a,
+                #         reason,
+                #     )
+                #     # Anropa den inre funktionen för att eventuellt justera strömmen.
+                #     await set_current_if_needed_locally()
+                # # Om laddaren är frånkopplad eller offline, men laddning begärs:
+                # elif (
+                #     charger_status in EASEE_STATUS_DISCONNECTED  # Är bilen frånkopplad?
+                #     or charger_status == EASEE_STATUS_OFFLINE  # Är laddaren offline?
+                # ):
+                #     # Logga en varning om detta.
+                #     _LOGGER.warning(
+                #         "Laddning begärd, men laddaren är frånkopplad/offline (status: %s).",
+                #         charger_status,
+                #     )
+                #     # Om en session var aktiv, återställ sessionsdata.
+                #     if self.session_start_time_utc is not None:
+                #         self._reset_session_data(
+                #             f"Laddare frånkopplad/offline ({charger_status})"
+                #         )
+                # # Annat fall: Laddning begärs men statusen är inte optimal för start (t.ex. error).
+                # else:
+                #     _LOGGER.info(
+                #         "Laddning begärd (Anledning: %s), men laddarstatus är %s. Inväntar lämpligt tillstånd.",
+                #         reason,
+                #         charger_status,
+                #     )
             # Om laddning INTE ska ske (should_charge är False):
-            # Om laddaren just nu laddar, eller om den är pausad och det inte är manuellt läge:
-            # (Logiken här är att om den är pausad och vi är i manuellt läge, ska vi inte skicka ett nytt pauskommando).
-            elif charger_status == EASEE_STATUS_CHARGING or (
-                charger_status == EASEE_STATUS_PAUSED
-                and self.active_control_mode_internal != CONTROL_MODE_MANUAL
-            ):
-                # Logga att vi stoppar/pausar laddningen.
-                _LOGGER.info(
-                    "Stoppar/pausar laddning. Anledning: %s. Status: %s",
-                    reason,
-                    charger_status,
-                )
-                # Anropar Easee-tjänsten för att pausa laddningen.
-                # Detta är den aktiva koden, baserat på användarens tidigare input.
-                await self.hass.services.async_call(
-                    "easee",  # Domänen för Easee.
-                    "action_command",  # Tjänstenamn för generiska kommandon.
-                    {
-                        "device_id": self.config.get(
-                            CONF_CHARGER_DEVICE
-                        ),  # Enhets-ID.
-                        "action_command": "pause",  # Kommando för att pausa.
-                    },
-                    blocking=False,  # Kör asynkront.
-                )
-                # Om en session var aktiv, återställ sessionsdata.
-                if self.session_start_time_utc is not None:
-                    self._reset_session_data(f"Laddning stoppad/pausad ({reason})")
-            # Om ingen laddning begärs och laddaren inte aktivt laddar:
             else:
-                # Logga nuvarande status.
-                if self._debug_logging:
-                    _LOGGER.debug(
-                        "Ingen laddning begärd och laddaren är inte aktivt laddande (status: %s). Anledning till ingen laddning: %s",
-                        charger_status,
-                        reason,
-                    )
-                # Om en session var aktiv men laddaren nu har en oväntad status (inte redo, väntar, pausad),
-                # återställ sessionen för att undvika felaktig sessionsdata.
-                if (
-                    self.session_start_time_utc is not None  # Fanns en session?
-                    and charger_status  # Finns en status?
-                    not in [  # Och statusen är INTE en av dessa "vilande men OK" statusar?
-                        EASEE_STATUS_AWAITING_START,
-                        EASEE_STATUS_READY_TO_CHARGE,
-                        EASEE_STATUS_PAUSED,
-                    ]
+                # Om laddaren just nu laddar, eller om den är pausad och det inte är manuellt läge:
+                # (Logiken här är att om den är pausad och vi är i manuellt läge, ska vi inte skicka ett nytt pauskommando).
+                if charger_status == EASEE_STATUS_CHARGING or (
+                    charger_status == EASEE_STATUS_PAUSED
+                    and self.active_control_mode_internal != CONTROL_MODE_MANUAL
                 ):
-                    self._reset_session_data(
-                        f"Laddningssession avslutad (status: {charger_status}, Anledning: {reason})"
+                    # Logga att vi stoppar/pausar laddningen.
+                    _LOGGER.info(
+                        "Stoppar/pausar laddning. Anledning: %s. Status: %s",
+                        reason,
+                        charger_status,
                     )
+                    # Denna del är utkommenterad, representerar ett tidigare sätt att anropa tjänsten.
+                    # await self.hass.services.async_call(
+                    #     "easee",
+                    #     EASEE_SERVICE_PAUSE_CHARGING, # Konstant för paus-tjänsten.
+                    #     {"charger_id": self.config.get(CONF_CHARGER_DEVICE)},
+                    #     blocking=False,
+                    # )
+                    # Anropar Easee-tjänsten för att pausa laddningen.
+                    # Detta är den aktiva koden, baserat på användarens tidigare input.
+                    await self.hass.services.async_call(
+                        "easee",  # Domänen för Easee.
+                        "action_command",  # Tjänstenamn för generiska kommandon.
+                        {
+                            "device_id": self.config.get(
+                                CONF_CHARGER_DEVICE
+                            ),  # Enhets-ID.
+                            "action_command": "pause",  # Kommando för att pausa.
+                        },
+                        blocking=False,  # Kör asynkront.
+                    )
+                    # Om en session var aktiv, återställ sessionsdata.
+                    if self.session_start_time_utc is not None:
+                        self._reset_session_data(f"Laddning stoppad/pausad ({reason})")
+                # Om ingen laddning begärs och laddaren inte aktivt laddar:
+                else:
+                    # Logga nuvarande status.
+                    if self._debug_logging:
+                        _LOGGER.debug(
+                            "Ingen laddning begärd och laddaren är inte aktivt laddande (status: %s). Anledning till ingen laddning: %s",
+                            charger_status,
+                            reason,
+                        )
+                    # Om en session var aktiv men laddaren nu har en oväntad status (inte redo, väntar, pausad),
+                    # återställ sessionen för att undvika felaktig sessionsdata.
+                    if (
+                        self.session_start_time_utc is not None  # Fanns en session?
+                        and charger_status  # Finns en status?
+                        not in [  # Och statusen är INTE en av dessa "vilande men OK" statusar?
+                            EASEE_STATUS_AWAITING_START,
+                            EASEE_STATUS_READY_TO_CHARGE,
+                            EASEE_STATUS_PAUSED,
+                        ]
+                    ):
+                        self._reset_session_data(
+                            f"Laddningssession avslutad (status: {charger_status}, Anledning: {reason})"
+                        )
         # Fångar upp eventuella oväntade fel under styrningen av laddaren.
         except Exception as e:
             _LOGGER.error(
@@ -828,6 +971,8 @@ class SmartEVChargingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     }
                 )
 
+        # Hämtar den nuvarande tiden i UTC-format. Används för tidsbaserade jämförelser.
+        current_time = dt_util.utcnow()
         # Hämtar entity_id för laddarens statussensor från konfigurationen.
         charger_status_sensor_id = self.config.get(CONF_STATUS_SENSOR)
         # Hämtar tillståndsobjektet för statussensorn från Home Assistant.
@@ -920,6 +1065,8 @@ class SmartEVChargingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             else True  # Annars, antag att det är aktivt.
         )
 
+        # Hämtar aktuell husförbrukning i Watt via en hjälpmetod.
+        current_house_power_w = await self._get_power_value(CONF_HOUSE_POWER_SENSOR)
         # Hämtar aktuell solproduktion i Watt. Om sensorn inte finns eller är otillgänglig, använd 0.0 W.
         current_solar_production_w = (
             await self._get_power_value(CONF_SOLAR_PRODUCTION_SENSOR)
@@ -1139,4 +1286,111 @@ class SmartEVChargingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 #         self._reset_session_data("Avslutar Pris/Tid för Solenergi")
 
                 #     # Starta en ny session om ingen redan pågår
-                #     if self.session_start_time_utc is None
+                #     if self.session_start_time_utc is None:
+                #         _LOGGER.info("Startar ny Solenergi-session.")
+                #         self.session_start_time_utc = dt_util.utcnow()
+
+                # else:
+                #     # Överskottet är för litet, ingen solenergiladdning.
+                #     self.active_control_mode_internal = CONTROL_MODE_MANUAL
+                #     self.should_charge_flag = False
+                #     reason_for_action = f"För lite solöverskott ({available_solar_surplus_w:.0f}W -> {calculated_solar_current_a:.1f}A < {min_solar_charge_current_a:.1f}A min)."
+
+                #     # Återställ sessionen om den som avslutas var en solsession
+                #     if (
+                #         self.session_start_time_utc is not None
+                #         and not self._price_time_eligible_for_charging
+                #     ):
+                #         self._reset_session_data(reason_for_action)
+
+                # Markera att Pris/Tid inte är den aktiva logiken
+                # self._price_time_eligible_for_charging = False
+            ### KORRIGERING SLUTAR HÄR ###
+            # Om varken Pris/Tid eller Solenergi-villkoren är uppfyllda:
+            else:
+                self.active_control_mode_internal = (
+                    CONTROL_MODE_MANUAL  # Manuell/AV-läge.
+                )
+                self.should_charge_flag = False  # Ingen laddning.
+                reason_for_action = "Inga aktiva smarta laddningsvillkor uppfyllda."
+                # Om en session pågick, återställ den.
+                if self.session_start_time_utc is not None:
+                    self._reset_session_data(reason_for_action)
+                # Nollställ solenergi-specifika flaggor/timers.
+                self._solar_surplus_start_time = None
+                self._solar_session_active = False
+                self._price_time_eligible_for_charging = False
+
+        # Anropa metoden som faktiskt skickar kommandon till laddaren,
+        # baserat på de beslut som fattats ovan.
+        await self._control_charger(
+            self.should_charge_flag, self.target_charge_current_a, reason_for_action
+        )
+
+        # Sätter det "officiella" aktiva styrningsläget som exponeras utåt.
+        # Om self.active_control_mode_internal är None (vilket det inte borde vara här), fall tillbaka till MANUELL.
+        self.active_control_mode = (
+            self.active_control_mode_internal or CONTROL_MODE_MANUAL
+        )
+        # Uppdaterar tidsstämpeln för den senaste uppdateringen.
+        self.last_update_time = current_time
+
+        # Loggar en sammanfattning av uppdateringscykelns resultat.
+        if self._debug_logging:
+            _LOGGER.debug(
+                "Uppdateringscykel klar. Styrningsläge: %s. Ska ladda: %s. Ström: %.1fA. Anledning: %s. Laddarstatus: %s. Sol Aktiv: %s",  # LADE TILL Sol Aktiv
+                self.active_control_mode,
+                self.should_charge_flag,
+                self.target_charge_current_a,
+                reason_for_action,
+                charger_status,
+                self._solar_session_active,  # LADE TILL DENNA VARIABEL
+            )
+
+        # Returnerar en dictionary med data som kan användas av sensorer kopplade till denna koordinator.
+        return self._current_coordinator_data(reason_for_action)
+
+    def _current_coordinator_data(self, reason: str) -> dict[str, Any]:
+        return {
+            "active_control_mode": self.active_control_mode
+            if self.active_control_mode
+            else CONTROL_MODE_MANUAL,
+            "should_charge_reason": reason,
+            "session_start_time_utc": self.session_start_time_utc.isoformat()
+            if self.session_start_time_utc
+            else None,
+        }
+
+    async def cleanup(self) -> None:
+        _LOGGER.info("Rensar upp SmartEVChargingCoordinator...")
+        self._remove_listeners()
+
+    # Ny hjälpmetod i SmartEVChargingCoordinator
+    async def _is_manually_paused(self) -> bool:
+        """Kontrollerar om laddaren verkar vara manuellt pausad via appen."""
+        status_sensor_id = self.config.get(CONF_STATUS_SENSOR)
+        dyn_current_sensor_id = self.config.get(CONF_CHARGER_DYNAMIC_CURRENT_SENSOR)
+
+        if not status_sensor_id or not dyn_current_sensor_id:
+            return False  # Kan inte avgöra utan båda sensorerna
+
+        charger_status_state = self.hass.states.get(str(status_sensor_id))
+        charger_status = (
+            charger_status_state.state.lower()
+            if charger_status_state
+            else STATE_UNKNOWN
+        )
+
+        # Manuell paus kännetecknas av status awaiting_start OCH dynamisk ström satt till 0
+        if charger_status == EASEE_STATUS_AWAITING_START:
+            dyn_current = await self._get_number_value(
+                dyn_current_sensor_id, is_config_key=False
+            )
+            if dyn_current is not None and dyn_current == 0:
+                if self._debug_logging:
+                    _LOGGER.debug(
+                        "Laddaren är manuellt pausad (status: awaiting_start, dyn_current: 0A)."
+                    )
+                return True
+
+        return False
