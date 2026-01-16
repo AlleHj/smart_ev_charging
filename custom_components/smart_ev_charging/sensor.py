@@ -1,23 +1,18 @@
 # File version: 2025-06-05 0.2.0
 import logging
-from typing import Any
 
-from homeassistant.components.sensor import (
-    SensorEntity,
-    SensorDeviceClass,
-    SensorStateClass,
-)
+from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.const import STATE_UNKNOWN
-# import homeassistant.util.dt as dt_util # Behövs inte längre här
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+# import homeassistant.util.dt as dt_util # Behövs inte längre här
 from .const import (
-    DOMAIN,
     DEFAULT_NAME,
+    DOMAIN,
     # ENTITY_ID_SUFFIX_SESSION_ENERGY_SENSOR, # Borttagen
     # ENTITY_ID_SUFFIX_SESSION_COST_SENSOR, # Borttagen
     ENTITY_ID_SUFFIX_ACTIVE_CONTROL_MODE_SENSOR,

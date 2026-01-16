@@ -4,16 +4,17 @@ from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import STATE_OFF, STATE_ON
 from homeassistant.core import HomeAssistant, State
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
-from homeassistant.const import STATE_ON, STATE_OFF
 
 from .const import (
-    DOMAIN, DEFAULT_NAME,
+    DEFAULT_NAME,
+    DOMAIN,
+    ENTITY_ID_SUFFIX_ENABLE_SOLAR_CHARGING_SWITCH,
     ENTITY_ID_SUFFIX_SMART_ENABLE_SWITCH,
-    ENTITY_ID_SUFFIX_ENABLE_SOLAR_CHARGING_SWITCH
 )
 
 _LOGGER = logging.getLogger(f"custom_components.{DOMAIN}") # Använd komponent-specifik logger

@@ -1,48 +1,46 @@
 # File version: 2025-06-05 0.2.0 // ÄNDRA HÄR
 """Config flow for Smart EV Charging integration."""
 
-import voluptuous as vol
+from collections import OrderedDict
 import logging
 from typing import Any
-from collections import OrderedDict
 
 import voluptuous as vol
 
-from homeassistant.config_entries import ConfigFlow, ConfigEntry, OptionsFlow
+from homeassistant.components.sensor import SensorDeviceClass
+from homeassistant.config_entries import ConfigEntry, ConfigFlow, OptionsFlow
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.selector import (
-    DeviceSelectorConfig,
+    BooleanSelector,
+    BooleanSelectorConfig,
     DeviceSelector,
-    EntitySelectorConfig,
+    DeviceSelectorConfig,
     EntitySelector,
+    EntitySelectorConfig,
     NumberSelector,
     NumberSelectorConfig,
     NumberSelectorMode,
-    BooleanSelector,
-    BooleanSelectorConfig,
 )
-from homeassistant.components.sensor import SensorDeviceClass
-import homeassistant.helpers.config_validation as cv
 
 from .const import (
-    DOMAIN,
     CONF_CHARGER_DEVICE,
-    CONF_STATUS_SENSOR,
-    CONF_PRICE_SENSOR,
-    CONF_TIME_SCHEDULE_ENTITY,
+    CONF_CHARGER_DYNAMIC_CURRENT_SENSOR,
+    CONF_CHARGER_ENABLED_SWITCH_ID,
+    CONF_CHARGER_MAX_CURRENT_LIMIT_SENSOR,
+    CONF_DEBUG_LOGGING,
+    CONF_EV_SOC_SENSOR,
     CONF_HOUSE_POWER_SENSOR,
+    CONF_PRICE_SENSOR,
+    CONF_SCAN_INTERVAL,
     CONF_SOLAR_PRODUCTION_SENSOR,
     CONF_SOLAR_SCHEDULE_ENTITY,
-    CONF_CHARGER_MAX_CURRENT_LIMIT_SENSOR,
-    CONF_CHARGER_DYNAMIC_CURRENT_SENSOR,
-    CONF_SCAN_INTERVAL,
-    CONF_CHARGER_ENABLED_SWITCH_ID,
-    CONF_EV_SOC_SENSOR,
+    CONF_STATUS_SENSOR,
     CONF_TARGET_SOC_LIMIT,
-    CONF_DEBUG_LOGGING,
+    CONF_TIME_SCHEDULE_ENTITY,
     DEFAULT_NAME,
     DEFAULT_SCAN_INTERVAL_SECONDS,
+    DOMAIN,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -237,40 +235,39 @@ def _build_common_schema(
                     )
                 ] = selector_instance_final
 
-        else:
-            if is_initial_setup_display:
-                if conf_key in REQUIRED_CONF_SETUP_KEYS:
-                    final_schema_dict[vol.Required(conf_key, default=vol.UNDEFINED)] = (
-                        selector_instance_orig
-                    )
-                elif conf_key in MAYBE_SELECTOR_CONF_KEYS:
-                    final_schema_dict[vol.Optional(conf_key, default=None)] = vol.Maybe(
-                        selector_instance_orig
-                    )
-                elif conf_key == CONF_SCAN_INTERVAL:
-                    final_schema_dict[
-                        vol.Optional(conf_key, default=DEFAULT_SCAN_INTERVAL_SECONDS)
-                    ] = selector_instance_orig
-                elif conf_key == CONF_DEBUG_LOGGING:
-                    final_schema_dict[vol.Optional(conf_key, default=False)] = (
-                        selector_instance_orig
-                    )
-                else:
-                    final_schema_dict[
-                        vol.Optional(conf_key, default=val_for_ui_default)
-                    ] = selector_instance_orig
+        elif is_initial_setup_display:
+            if conf_key in REQUIRED_CONF_SETUP_KEYS:
+                final_schema_dict[vol.Required(conf_key, default=vol.UNDEFINED)] = (
+                    selector_instance_orig
+                )
+            elif conf_key in MAYBE_SELECTOR_CONF_KEYS:
+                final_schema_dict[vol.Optional(conf_key, default=None)] = vol.Maybe(
+                    selector_instance_orig
+                )
+            elif conf_key == CONF_SCAN_INTERVAL:
+                final_schema_dict[
+                    vol.Optional(conf_key, default=DEFAULT_SCAN_INTERVAL_SECONDS)
+                ] = selector_instance_orig
+            elif conf_key == CONF_DEBUG_LOGGING:
+                final_schema_dict[vol.Optional(conf_key, default=False)] = (
+                    selector_instance_orig
+                )
             else:
-                current_selector_repop = selector_instance_orig
-                if conf_key in MAYBE_SELECTOR_CONF_KEYS:
-                    current_selector_repop = vol.Maybe(selector_instance_orig)
-                if conf_key in REQUIRED_CONF_SETUP_KEYS:
-                    final_schema_dict[
-                        vol.Required(conf_key, default=val_for_ui_default)
-                    ] = current_selector_repop
-                else:
-                    final_schema_dict[
-                        vol.Optional(conf_key, default=val_for_ui_default)
-                    ] = current_selector_repop
+                final_schema_dict[
+                    vol.Optional(conf_key, default=val_for_ui_default)
+                ] = selector_instance_orig
+        else:
+            current_selector_repop = selector_instance_orig
+            if conf_key in MAYBE_SELECTOR_CONF_KEYS:
+                current_selector_repop = vol.Maybe(selector_instance_orig)
+            if conf_key in REQUIRED_CONF_SETUP_KEYS:
+                final_schema_dict[
+                    vol.Required(conf_key, default=val_for_ui_default)
+                ] = current_selector_repop
+            else:
+                final_schema_dict[
+                    vol.Optional(conf_key, default=val_for_ui_default)
+                ] = current_selector_repop
 
     return vol.Schema(final_schema_dict)
 
@@ -280,7 +277,6 @@ class SmartEVChargingOptionsFlowHandler(OptionsFlow):
 
     def __init__(self, config_entry: ConfigEntry) -> None:
         """Initierar alternativflödet."""
-        pass
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None

@@ -1,23 +1,21 @@
 # tests/test_solar_charging_stickiness.py
-"""
-Testar att en påbörjad solenergiladdning inte avbryts av mindre dippar
+"""Testar att en påbörjad solenergiladdning inte avbryts av mindre dippar
 under starttröskeln, utan fortsätter med lägre ström.
 """
 
-import pytest
-import math
 from datetime import timedelta
 
-from homeassistant.core import HomeAssistant
-from homeassistant.const import STATE_ON, STATE_OFF
+# Importera relevanta konstanter och klasser
+from custom_components.smart_ev_charging.const import *
+from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
+import pytest
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
     async_mock_service,
 )
 
-# Importera relevanta konstanter och klasser
-from custom_components.smart_ev_charging.const import *
-from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
+from homeassistant.const import STATE_OFF, STATE_ON
+from homeassistant.core import HomeAssistant
 
 # Mockade entiteter
 MOCK_SOLAR_SENSOR_ID = "sensor.test_solar_sticky"
@@ -84,8 +82,7 @@ async def test_solar_charging_does_not_stop_on_minor_dip(
     setup_coordinator_for_solar_test: SmartEVChargingCoordinator,
     freezer,
 ):
-    """
-    SYFTE: Verifiera att laddningen fortsätter med 5A även om starttröskeln är 6A.
+    """SYFTE: Verifiera att laddningen fortsätter med 5A även om starttröskeln är 6A.
     """
     coordinator = setup_coordinator_for_solar_test
     set_current_calls = async_mock_service(hass, "easee", "set_charger_dynamic_limit")

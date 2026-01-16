@@ -1,50 +1,42 @@
 # tests/test_active_control_mode_sensor.py
-"""
-Tester för att verifiera att sensorn för aktivt styrningsläge
+"""Tester för att verifiera att sensorn för aktivt styrningsläge
 uppdateras korrekt baserat på koordinatorns beslut.
 """
 
-import pytest
 import logging
-from datetime import timedelta
 
-from homeassistant.core import HomeAssistant
-from homeassistant.const import STATE_ON, STATE_OFF, UnitOfPower
-from homeassistant.util import dt as dt_util
-
+from custom_components.smart_ev_charging.const import (
+    CONF_CHARGER_DEVICE,
+    CONF_CHARGER_ENABLED_SWITCH_ID,
+    CONF_CHARGER_MAX_CURRENT_LIMIT_SENSOR,
+    CONF_HOUSE_POWER_SENSOR,
+    CONF_PRICE_SENSOR,
+    CONF_SOLAR_PRODUCTION_SENSOR,
+    CONF_STATUS_SENSOR,
+    CONF_TIME_SCHEDULE_ENTITY,
+    CONTROL_MODE_MANUAL,
+    CONTROL_MODE_PRICE_TIME,
+    CONTROL_MODE_SOLAR_SURPLUS,
+    DOMAIN,
+    EASEE_SERVICE_ACTION_COMMAND,
+    EASEE_SERVICE_SET_DYNAMIC_CURRENT,
+    EASEE_STATUS_READY_TO_CHARGE,
+    ENTITY_ID_SUFFIX_ENABLE_SOLAR_CHARGING_SWITCH,
+    ENTITY_ID_SUFFIX_MAX_PRICE_NUMBER,
+    ENTITY_ID_SUFFIX_MIN_SOLAR_CHARGE_CURRENT_A_NUMBER,
+    ENTITY_ID_SUFFIX_SMART_ENABLE_SWITCH,
+    ENTITY_ID_SUFFIX_SOLAR_BUFFER_NUMBER,
+    MIN_CHARGE_CURRENT_A,  # Importerad för beräkning
+)
+from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
+import pytest
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
     async_mock_service,
 )
 
-from custom_components.smart_ev_charging.const import (
-    DOMAIN,
-    CONF_CHARGER_DEVICE,
-    CONF_STATUS_SENSOR,
-    CONF_CHARGER_ENABLED_SWITCH_ID,
-    CONF_PRICE_SENSOR,
-    CONF_TIME_SCHEDULE_ENTITY,
-    CONF_SOLAR_PRODUCTION_SENSOR,
-    CONF_HOUSE_POWER_SENSOR,
-    CONF_CHARGER_MAX_CURRENT_LIMIT_SENSOR,
-    EASEE_SERVICE_SET_DYNAMIC_CURRENT,
-    EASEE_SERVICE_ACTION_COMMAND,
-    CONTROL_MODE_PRICE_TIME,
-    CONTROL_MODE_SOLAR_SURPLUS,
-    CONTROL_MODE_MANUAL,
-    MIN_CHARGE_CURRENT_A,
-    SOLAR_SURPLUS_DELAY_SECONDS,
-    EASEE_STATUS_READY_TO_CHARGE,
-    ENTITY_ID_SUFFIX_SMART_ENABLE_SWITCH,
-    ENTITY_ID_SUFFIX_MAX_PRICE_NUMBER,
-    ENTITY_ID_SUFFIX_ENABLE_SOLAR_CHARGING_SWITCH,
-    ENTITY_ID_SUFFIX_MIN_SOLAR_CHARGE_CURRENT_A_NUMBER,
-    ENTITY_ID_SUFFIX_SOLAR_BUFFER_NUMBER,
-    PHASES,  # Importerad för beräkning
-    VOLTAGE_PHASE_NEUTRAL,  # Importerad för beräkning
-)
-from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
-
+from homeassistant.const import STATE_OFF, STATE_ON, UnitOfPower
+from homeassistant.core import HomeAssistant
 
 # Mockade entitets-ID:n för externa sensorer
 MOCK_PRICE_SENSOR_ID = "sensor.test_price_active_mode"
@@ -65,8 +57,7 @@ def enable_debug_logging():
 
 
 async def test_active_control_mode_sensor_updates(hass: HomeAssistant, freezer):
-    """
-    Testar att sensorn 'Aktivt Styrningsläge' uppdateras korrekt för de olika
+    """Testar att sensorn 'Aktivt Styrningsläge' uppdateras korrekt för de olika
     styrningslägena: PRIS/TID, SOLENERGI och AV (Manuell).
 
     SYFTE:

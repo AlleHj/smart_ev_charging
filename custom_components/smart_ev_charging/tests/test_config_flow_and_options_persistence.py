@@ -1,39 +1,37 @@
 # test_config_flow_and_options_persistence.py
-"""
-Testar hela flödet från initial konfiguration till ändringar via alternativ,
+"""Testar hela flödet från initial konfiguration till ändringar via alternativ,
 med fokus på att verifiera att valda sensorer och värden sparas och
 återläses korrekt.
 """
 
-import pytest
-import random
 import logging
+import random
 from unittest.mock import patch
 
-from homeassistant.core import HomeAssistant
-from homeassistant.config_entries import ConfigEntry, ConfigEntryState
-from homeassistant.const import STATE_ON, STATE_OFF
-
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-
 from custom_components.smart_ev_charging.const import (
-    DOMAIN,
     CONF_CHARGER_DEVICE,
-    CONF_STATUS_SENSOR,
+    CONF_CHARGER_DYNAMIC_CURRENT_SENSOR,
     CONF_CHARGER_ENABLED_SWITCH_ID,
-    CONF_PRICE_SENSOR,
-    CONF_EV_SOC_SENSOR,
-    CONF_TARGET_SOC_LIMIT,
-    CONF_SCAN_INTERVAL,
+    CONF_CHARGER_MAX_CURRENT_LIMIT_SENSOR,
     CONF_DEBUG_LOGGING,
-    DEFAULT_SCAN_INTERVAL_SECONDS,
-    CONF_TIME_SCHEDULE_ENTITY,
+    CONF_EV_SOC_SENSOR,
     CONF_HOUSE_POWER_SENSOR,
+    CONF_PRICE_SENSOR,
+    CONF_SCAN_INTERVAL,
     CONF_SOLAR_PRODUCTION_SENSOR,
     CONF_SOLAR_SCHEDULE_ENTITY,
-    CONF_CHARGER_MAX_CURRENT_LIMIT_SENSOR,
-    CONF_CHARGER_DYNAMIC_CURRENT_SENSOR,
+    CONF_STATUS_SENSOR,
+    CONF_TARGET_SOC_LIMIT,
+    CONF_TIME_SCHEDULE_ENTITY,
+    DEFAULT_SCAN_INTERVAL_SECONDS,
+    DOMAIN,
 )
+import pytest
+
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import STATE_OFF, STATE_ON
+from homeassistant.core import HomeAssistant
+
 # from custom_components.smart_ev_charging.config_flow import (
 #     OPTIONAL_ENTITY_CONF_KEYS # Används inte explicit just nu, men bra att ha om man itererar
 # )

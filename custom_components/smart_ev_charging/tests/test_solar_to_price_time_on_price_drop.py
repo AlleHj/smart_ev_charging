@@ -1,52 +1,49 @@
 # test_solar_to_price_time_on_price_drop.py
-"""
-Testar övergång från Solenergiladdning till Pris/Tid-laddning
+"""Testar övergång från Solenergiladdning till Pris/Tid-laddning
 när elpriset sjunker under max acceptabelt pris.
 """
 
-import pytest
+from datetime import UTC, datetime, timedelta
 import logging
-from unittest.mock import patch
-from datetime import datetime, timedelta, timezone
 import math
+from unittest.mock import patch
 
-from homeassistant.core import HomeAssistant
-from homeassistant.const import STATE_ON, STATE_OFF
-from homeassistant.util import dt as dt_util
-
+from custom_components.smart_ev_charging.const import (
+    CONF_CHARGER_DEVICE,
+    CONF_CHARGER_DYNAMIC_CURRENT_SENSOR,
+    CONF_CHARGER_ENABLED_SWITCH_ID,
+    CONF_CHARGER_MAX_CURRENT_LIMIT_SENSOR,
+    CONF_DEBUG_LOGGING,
+    CONF_HOUSE_POWER_SENSOR,
+    CONF_PRICE_SENSOR,
+    CONF_SOLAR_PRODUCTION_SENSOR,
+    CONF_SOLAR_SCHEDULE_ENTITY,  # Behövs i config, men sätts till None
+    CONF_STATUS_SENSOR,
+    CONF_TIME_SCHEDULE_ENTITY,  # Behövs i config, men sätts till None för "alltid aktivt"
+    CONTROL_MODE_PRICE_TIME,
+    CONTROL_MODE_SOLAR_SURPLUS,
+    DOMAIN,
+    EASEE_SERVICE_RESUME_CHARGING,
+    EASEE_STATUS_CHARGING,
+    ENTITY_ID_SUFFIX_ENABLE_SOLAR_CHARGING_SWITCH,
+    ENTITY_ID_SUFFIX_MAX_PRICE_NUMBER,
+    ENTITY_ID_SUFFIX_MIN_SOLAR_CHARGE_CURRENT_A_NUMBER,
+    ENTITY_ID_SUFFIX_SMART_ENABLE_SWITCH,
+    ENTITY_ID_SUFFIX_SOLAR_BUFFER_NUMBER,
+    MAX_CHARGE_CURRENT_A_HW_DEFAULT,  # Hårdvarumax
+    MIN_CHARGE_CURRENT_A,
+    SOLAR_SURPLUS_DELAY_SECONDS,
+)
+from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
+import pytest
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
     async_mock_service,
 )
 
-from custom_components.smart_ev_charging.const import (
-    DOMAIN,
-    CONF_CHARGER_DEVICE,
-    CONF_STATUS_SENSOR,
-    CONF_CHARGER_ENABLED_SWITCH_ID,
-    CONF_PRICE_SENSOR,
-    CONF_TIME_SCHEDULE_ENTITY,  # Behövs i config, men sätts till None för "alltid aktivt"
-    CONF_SOLAR_PRODUCTION_SENSOR,
-    CONF_HOUSE_POWER_SENSOR,
-    CONF_SOLAR_SCHEDULE_ENTITY,  # Behövs i config, men sätts till None
-    CONF_CHARGER_MAX_CURRENT_LIMIT_SENSOR,
-    CONF_CHARGER_DYNAMIC_CURRENT_SENSOR,
-    CONF_DEBUG_LOGGING,
-    ENTITY_ID_SUFFIX_SMART_ENABLE_SWITCH,
-    ENTITY_ID_SUFFIX_MAX_PRICE_NUMBER,
-    ENTITY_ID_SUFFIX_ENABLE_SOLAR_CHARGING_SWITCH,
-    ENTITY_ID_SUFFIX_SOLAR_BUFFER_NUMBER,
-    ENTITY_ID_SUFFIX_MIN_SOLAR_CHARGE_CURRENT_A_NUMBER,
-    EASEE_SERVICE_SET_DYNAMIC_CURRENT,
-    EASEE_SERVICE_RESUME_CHARGING,
-    EASEE_STATUS_CHARGING,
-    CONTROL_MODE_SOLAR_SURPLUS,
-    CONTROL_MODE_PRICE_TIME,
-    MIN_CHARGE_CURRENT_A,
-    MAX_CHARGE_CURRENT_A_HW_DEFAULT,  # Hårdvarumax
-    SOLAR_SURPLUS_DELAY_SECONDS,
-)
-from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
+from homeassistant.const import STATE_ON
+from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
 
 # Konstanter för testet
 CHARGER_DEVICE_ID = "easee_price_drop_test"
@@ -80,8 +77,7 @@ def enable_debug_logging():
 
 
 async def test_solar_to_price_time_on_price_drop(hass: HomeAssistant, caplog):
-    """
-    Testar övergång från Solenergi till Pris/Tid när elpriset sjunker.
+    """Testar övergång från Solenergi till Pris/Tid när elpriset sjunker.
 
     SYFTE:
     1. Solenergiladdning är aktiv initialt (pris för högt för Pris/Tid, inga scheman).
@@ -156,7 +152,7 @@ async def test_solar_to_price_time_on_price_drop(hass: HomeAssistant, caplog):
             MIN_SOLAR_CURRENT_NUMBER_ID, str(MIN_CHARGE_CURRENT_A)
         )  # 6A
 
-        start_time_utc = datetime(2025, 6, 1, 10, 0, 0, tzinfo=timezone.utc)
+        start_time_utc = datetime(2025, 6, 1, 10, 0, 0, tzinfo=UTC)
         hass.states.async_set(STATUS_SENSOR_ID, EASEE_STATUS_CHARGING)
 
         set_charger_dynamic_limit_calls = async_mock_service(

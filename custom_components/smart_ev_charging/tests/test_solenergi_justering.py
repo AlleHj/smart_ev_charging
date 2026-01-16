@@ -1,42 +1,33 @@
 # test_solenergi_justering.py
-"""
-Testfall för att verifiera och driva utvecklingen av den dynamiska
+"""Testfall för att verifiera och driva utvecklingen av den dynamiska
 justeringen av laddström vid solenergiladdning.
 """
 
 # Importerar nödvändiga bibliotek och moduler från pytest, Home Assistant och den egna komponenten.
-import pytest
 import logging
-import math
-from unittest.mock import patch
 
-from homeassistant.core import HomeAssistant
-from homeassistant.const import STATE_ON, STATE_OFF, UnitOfPower
-
+# Importerar konstanter och koordinatorn från den anpassade komponenten.
+from custom_components.smart_ev_charging.const import (
+    CONF_CHARGER_DEVICE,
+    CONF_CHARGER_ENABLED_SWITCH_ID,
+    CONF_CHARGER_MAX_CURRENT_LIMIT_SENSOR,
+    CONF_HOUSE_POWER_SENSOR,
+    CONF_PRICE_SENSOR,
+    CONF_SOLAR_PRODUCTION_SENSOR,
+    CONF_STATUS_SENSOR,
+    CONTROL_MODE_SOLAR_SURPLUS,
+    DOMAIN,
+    EASEE_STATUS_CHARGING,
+    EASEE_STATUS_READY_TO_CHARGE,
+)
+from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
     async_mock_service,
 )
 
-# Importerar konstanter och koordinatorn från den anpassade komponenten.
-from custom_components.smart_ev_charging.const import (
-    DOMAIN,
-    CONF_CHARGER_DEVICE,
-    CONF_STATUS_SENSOR,
-    CONF_CHARGER_ENABLED_SWITCH_ID,
-    CONF_PRICE_SENSOR,
-    CONF_SOLAR_PRODUCTION_SENSOR,
-    CONF_HOUSE_POWER_SENSOR,
-    CONF_CHARGER_MAX_CURRENT_LIMIT_SENSOR,
-    EASEE_STATUS_READY_TO_CHARGE,
-    EASEE_STATUS_CHARGING,
-    CONTROL_MODE_MANUAL,
-    CONTROL_MODE_SOLAR_SURPLUS,
-    PHASES,
-    VOLTAGE_PHASE_NEUTRAL,
-    EASEE_SERVICE_SET_DYNAMIC_CURRENT,
-)
-from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
+from homeassistant.const import STATE_OFF, STATE_ON, UnitOfPower
+from homeassistant.core import HomeAssistant
 
 # Ställer in loggningsnivå för att fånga upp relevanta meddelanden under testkörningen.
 _LOGGER = logging.getLogger(f"custom_components.{DOMAIN}")
@@ -44,8 +35,7 @@ _LOGGER.setLevel(logging.DEBUG)
 
 
 async def test_dynamisk_justering_vid_solenergiladdning(hass: HomeAssistant):
-    """
-    Testar hela flödet: start, minskning av solproduktion och ökning av solproduktion.
+    """Testar hela flödet: start, minskning av solproduktion och ökning av solproduktion.
     Detta test är designat för att driva fram en specifik logik i koordinatorn.
     """
     # --- ARRANGE (Förberedelser) ---
@@ -85,11 +75,11 @@ async def test_dynamisk_justering_vid_solenergiladdning(hass: HomeAssistant):
 
     # Importerar suffix för de interna entiteterna som skapas av integrationen.
     from custom_components.smart_ev_charging.const import (
-        ENTITY_ID_SUFFIX_SMART_ENABLE_SWITCH,
-        ENTITY_ID_SUFFIX_MAX_PRICE_NUMBER,
         ENTITY_ID_SUFFIX_ENABLE_SOLAR_CHARGING_SWITCH,
-        ENTITY_ID_SUFFIX_SOLAR_BUFFER_NUMBER,
+        ENTITY_ID_SUFFIX_MAX_PRICE_NUMBER,
         ENTITY_ID_SUFFIX_MIN_SOLAR_CHARGE_CURRENT_A_NUMBER,
+        ENTITY_ID_SUFFIX_SMART_ENABLE_SWITCH,
+        ENTITY_ID_SUFFIX_SOLAR_BUFFER_NUMBER,
     )
 
     # Eftersom testerna körs isolerat måste vi manuellt tilldela de fullständiga entity_id

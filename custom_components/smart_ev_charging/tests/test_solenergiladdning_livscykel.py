@@ -1,6 +1,5 @@
 # tests/test_solenergiladdning_livscykel.py
-"""
-Tester för att verifiera hela livscykeln för solenergiladdning.
+"""Tester för att verifiera hela livscykeln för solenergiladdning.
 
 Detta testfall säkerställer att koordinatorn korrekt hanterar hela flödet:
 1.  Ignorerar ett negativt eller otillräckligt solöverskott.
@@ -10,43 +9,37 @@ Detta testfall säkerställer att koordinatorn korrekt hanterar hela flödet:
 5.  Pausar laddningen när solöverskottet försvinner.
 """
 
-import pytest
 import logging
-from datetime import timedelta
-import math
 
-from homeassistant.core import HomeAssistant
-from homeassistant.const import STATE_ON, STATE_OFF, UnitOfPower
-from homeassistant.util import dt as dt_util
-
+from custom_components.smart_ev_charging.const import (
+    CONF_CHARGER_DEVICE,
+    CONF_CHARGER_ENABLED_SWITCH_ID,
+    CONF_HOUSE_POWER_SENSOR,
+    CONF_SOLAR_PRODUCTION_SENSOR,
+    CONF_STATUS_SENSOR,
+    CONTROL_MODE_MANUAL,
+    CONTROL_MODE_SOLAR_SURPLUS,  # Används i detta test (hette CONTROL_MODE_SOLAR tidigare i coordinator.py, se kommentar nedan)
+    DOMAIN,
+    EASEE_SERVICE_SET_DYNAMIC_CURRENT,  # Korrekt importerad här
+    EASEE_STATUS_CHARGING,  # Används i teststeg 6
+    EASEE_STATUS_READY_TO_CHARGE,
+    ENTITY_ID_SUFFIX_ENABLE_SOLAR_CHARGING_SWITCH,
+    ENTITY_ID_SUFFIX_MAX_PRICE_NUMBER,
+    ENTITY_ID_SUFFIX_MIN_SOLAR_CHARGE_CURRENT_A_NUMBER,
+    ENTITY_ID_SUFFIX_SMART_ENABLE_SWITCH,
+    ENTITY_ID_SUFFIX_SOLAR_BUFFER_NUMBER,
+    PHASES,
+    VOLTAGE_PHASE_NEUTRAL,
+)
+from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
+import pytest
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
     async_mock_service,
 )
 
-from custom_components.smart_ev_charging.const import (
-    DOMAIN,
-    CONF_CHARGER_DEVICE,
-    CONF_STATUS_SENSOR,
-    CONF_SOLAR_PRODUCTION_SENSOR,
-    CONF_HOUSE_POWER_SENSOR,
-    CONF_CHARGER_ENABLED_SWITCH_ID,
-    EASEE_STATUS_READY_TO_CHARGE,
-    EASEE_STATUS_CHARGING,  # Används i teststeg 6
-    CONTROL_MODE_MANUAL,
-    CONTROL_MODE_SOLAR_SURPLUS,  # Används i detta test (hette CONTROL_MODE_SOLAR tidigare i coordinator.py, se kommentar nedan)
-    SOLAR_SURPLUS_DELAY_SECONDS,
-    MIN_CHARGE_CURRENT_A,
-    ENTITY_ID_SUFFIX_SMART_ENABLE_SWITCH,
-    ENTITY_ID_SUFFIX_MAX_PRICE_NUMBER,
-    ENTITY_ID_SUFFIX_ENABLE_SOLAR_CHARGING_SWITCH,
-    ENTITY_ID_SUFFIX_SOLAR_BUFFER_NUMBER,
-    ENTITY_ID_SUFFIX_MIN_SOLAR_CHARGE_CURRENT_A_NUMBER,
-    PHASES,
-    VOLTAGE_PHASE_NEUTRAL,
-    EASEE_SERVICE_SET_DYNAMIC_CURRENT,  # Korrekt importerad här
-)
-from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
+from homeassistant.const import STATE_OFF, STATE_ON, UnitOfPower
+from homeassistant.core import HomeAssistant
 
 # Mockade entitets-ID:n för externa sensorer
 MOCK_SOLAR_SENSOR_ID = "sensor.test_solar_production_lifecycle"

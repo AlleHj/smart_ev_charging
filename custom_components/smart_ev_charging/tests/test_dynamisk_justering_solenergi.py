@@ -1,43 +1,32 @@
 #
 # tests/test_dynamisk_justering_solenergi.py
 #
-"""
-Testfil för att verifiera den dynamiska justeringen av laddström vid solenergiladdning.
+"""Testfil för att verifiera den dynamiska justeringen av laddström vid solenergiladdning.
 Fokuserar på beräkning av överskott och anrop till set_dynamic_current.
 """
 
-from datetime import timedelta
+from custom_components.smart_ev_charging.const import (
+    CONF_CHARGER_DEVICE,
+    CONF_CHARGER_ENABLED_SWITCH_ID,
+    CONF_DEBUG_LOGGING,
+    CONF_HOUSE_POWER_SENSOR,
+    CONF_SOLAR_PRODUCTION_SENSOR,
+    CONF_STATUS_SENSOR,
+    DOMAIN,
+    EASEE_STATUS_CHARGING,  # Lade till denna för att använda i testet
+    EASEE_STATUS_READY_TO_CHARGE,
+    ENTITY_ID_SUFFIX_SOLAR_BUFFER_NUMBER,
+)
+from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
+from freezegun.api import FrozenDateTimeFactory
 import pytest
-import logging
-
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
     async_mock_service,
 )
 
+from homeassistant.const import STATE_OFF, STATE_ON
 from homeassistant.core import HomeAssistant
-from homeassistant.const import STATE_ON, STATE_OFF
-from homeassistant.util.dt import (
-    UTC,
-    as_utc,
-)  # Importerad men oanvänd i den här versionen
-from freezegun.api import FrozenDateTimeFactory
-
-from custom_components.smart_ev_charging.const import (
-    DOMAIN,
-    CONF_CHARGER_DEVICE,
-    CONF_STATUS_SENSOR,
-    CONF_HOUSE_POWER_SENSOR,
-    CONF_SOLAR_PRODUCTION_SENSOR,
-    CONF_CHARGER_ENABLED_SWITCH_ID,
-    CONF_DEBUG_LOGGING,
-    EASEE_STATUS_READY_TO_CHARGE,
-    EASEE_STATUS_CHARGING,  # Lade till denna för att använda i testet
-    EASEE_SERVICE_SET_DYNAMIC_CURRENT,
-    SOLAR_SURPLUS_DELAY_SECONDS,
-    ENTITY_ID_SUFFIX_SOLAR_BUFFER_NUMBER,
-)
-from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
 
 # Mockade entitets-ID:n och config-data definieras lokalt för detta test
 MOCK_SOLAR_PRODUCTION_SENSOR_ID = "sensor.test_solar_prod_dynamic_solar"
@@ -76,10 +65,10 @@ async def setup_solar_charging_test(hass: HomeAssistant):
     ]
     assert coordinator is not None
     from custom_components.smart_ev_charging.const import (
-        ENTITY_ID_SUFFIX_SMART_ENABLE_SWITCH,
-        ENTITY_ID_SUFFIX_MAX_PRICE_NUMBER,
         ENTITY_ID_SUFFIX_ENABLE_SOLAR_CHARGING_SWITCH,
+        ENTITY_ID_SUFFIX_MAX_PRICE_NUMBER,
         ENTITY_ID_SUFFIX_MIN_SOLAR_CHARGE_CURRENT_A_NUMBER,
+        ENTITY_ID_SUFFIX_SMART_ENABLE_SWITCH,
     )
 
     coordinator.smart_enable_switch_entity_id = (
@@ -106,8 +95,7 @@ async def test_dynamic_current_adjustment_for_solar_charging(
     setup_solar_charging_test: SmartEVChargingCoordinator,
     freezer: FrozenDateTimeFactory,
 ):
-    """
-    Testar att laddströmmen justeras dynamiskt baserat på solöverskott.
+    """Testar att laddströmmen justeras dynamiskt baserat på solöverskott.
 
     SYFTE:
         Att verifiera den matematiska beräkningen av tillgänglig laddström från

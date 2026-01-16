@@ -1,47 +1,35 @@
 # tests/test_huvudstrombrytare_interaktion.py
-"""
-Tester för interaktionen med laddboxens huvudströmbrytare.
+"""Tester för interaktionen med laddboxens huvudströmbrytare.
 
 Dessa tester verifierar hur SmartEVChargingCoordinator hanterar situationer
 där laddboxens huvudströmbrytare (konfigurerad via CONF_CHARGER_ENABLED_SWITCH_ID)
 är antingen AV när laddning önskas, eller stängs AV under en pågående laddsession.
 """
 
-import pytest
 import logging
-from unittest.mock import (
-    patch,
-    MagicMock,
-)  # MagicMock är inte använd här, kan tas bort om den inte behövs senare
 
-from homeassistant.core import HomeAssistant
-from homeassistant.const import (
-    STATE_ON,
-    STATE_OFF,
-    SERVICE_TURN_ON,
-    ATTR_ENTITY_ID,
+from custom_components.smart_ev_charging.const import (
+    CONF_CHARGER_DEVICE,
+    CONF_CHARGER_ENABLED_SWITCH_ID,
+    CONF_DEBUG_LOGGING,
+    CONF_PRICE_SENSOR,
+    CONF_STATUS_SENSOR,
+    CONF_TIME_SCHEDULE_ENTITY,
+    CONTROL_MODE_MANUAL,
+    CONTROL_MODE_PRICE_TIME,
+    DOMAIN,
+    EASEE_STATUS_CHARGING,
+    EASEE_STATUS_READY_TO_CHARGE,
 )
-
+from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
+import pytest
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
     async_mock_service,
 )
 
-from custom_components.smart_ev_charging.const import (
-    DOMAIN,
-    CONF_CHARGER_DEVICE,
-    CONF_STATUS_SENSOR,
-    CONF_CHARGER_ENABLED_SWITCH_ID,
-    CONF_PRICE_SENSOR,
-    CONF_TIME_SCHEDULE_ENTITY,
-    CONF_DEBUG_LOGGING,
-    EASEE_SERVICE_SET_DYNAMIC_CURRENT,  # Behövs för mockning
-    EASEE_STATUS_READY_TO_CHARGE,
-    EASEE_STATUS_CHARGING,
-    CONTROL_MODE_MANUAL,
-    CONTROL_MODE_PRICE_TIME,
-)
-from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
+from homeassistant.const import SERVICE_TURN_ON, STATE_OFF, STATE_ON
+from homeassistant.core import HomeAssistant
 
 # Mockade externa entitets-ID:n (som definierade i din originalfil)
 MOCK_CONFIG_ENTRY_ID = "test_main_switch_interaction_entry"
@@ -69,8 +57,7 @@ def enable_debug_logging_fixture():
 
 @pytest.fixture
 async def setup_coordinator(hass: HomeAssistant):
-    """
-    Fixture för att sätta upp SmartEVChargingCoordinator med en grundläggande,
+    """Fixture för att sätta upp SmartEVChargingCoordinator med en grundläggande,
     fungerande konfiguration för dessa tester.
     Returnerar en instans av koordinatorn.
     """
@@ -121,8 +108,7 @@ async def setup_coordinator(hass: HomeAssistant):
 async def test_main_switch_off_prevents_charging(
     hass: HomeAssistant, setup_coordinator: SmartEVChargingCoordinator, caplog
 ):
-    """
-    Testar att laddning förhindras om huvudströmbrytaren är AV.
+    """Testar att laddning förhindras om huvudströmbrytaren är AV.
 
     SYFTE:
         Att verifiera att integrationen respekterar huvudströmbrytarens AV-läge
@@ -198,8 +184,7 @@ async def test_main_switch_off_prevents_charging(
 async def test_manual_turn_off_main_switch_stops_charging(
     hass: HomeAssistant, setup_coordinator: SmartEVChargingCoordinator, caplog
 ):
-    """
-    Testar att en pågående smart laddning pausas korrekt om huvudströmbrytaren stängs av.
+    """Testar att en pågående smart laddning pausas korrekt om huvudströmbrytaren stängs av.
 
     SYFTE:
         Att verifiera att integrationen reagerar på en extern avstängning av

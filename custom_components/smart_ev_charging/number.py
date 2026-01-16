@@ -1,18 +1,18 @@
 # File version: 2025-06-05 0.2.0
 import logging
-from typing import Any
 
 from homeassistant.components.number import NumberEntity, NumberMode, RestoreNumber
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
-    DOMAIN, DEFAULT_NAME,
+    DEFAULT_NAME,
+    DOMAIN,
     ENTITY_ID_SUFFIX_MAX_PRICE_NUMBER,
+    ENTITY_ID_SUFFIX_MIN_SOLAR_CHARGE_CURRENT_A_NUMBER,
     ENTITY_ID_SUFFIX_SOLAR_BUFFER_NUMBER,
-    ENTITY_ID_SUFFIX_MIN_SOLAR_CHARGE_CURRENT_A_NUMBER
 )
 
 _LOGGER = logging.getLogger(f"custom_components.{DOMAIN}") # Använd komponent-specifik logger

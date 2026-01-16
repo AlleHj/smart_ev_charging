@@ -3,49 +3,41 @@
 #
 """Testfil för grundläggande funktioner i SmartEVChargingCoordinator."""
 
-from datetime import timedelta, datetime, timezone
-import pytest
-import logging
-import random
-from unittest.mock import patch
-from typing import Set
-
-from pytest_homeassistant_custom_component.common import (
-    MockConfigEntry,
-    async_fire_time_changed,
-    async_mock_service,
-)
-
-from homeassistant.core import HomeAssistant
-from homeassistant.const import STATE_ON, STATE_OFF, STATE_UNAVAILABLE
-import homeassistant.util.dt as dt_util
-from freezegun.api import FrozenDateTimeFactory
+from datetime import timedelta
 
 from custom_components.smart_ev_charging.const import (
-    DOMAIN,
     CONF_CHARGER_DEVICE,
-    CONF_STATUS_SENSOR,
-    CONF_CHARGER_ENABLED_SWITCH_ID,
-    CONF_PRICE_SENSOR,
-    CONF_TIME_SCHEDULE_ENTITY,
-    CONF_CHARGER_MAX_CURRENT_LIMIT_SENSOR,
     CONF_CHARGER_DYNAMIC_CURRENT_SENSOR,
+    CONF_CHARGER_ENABLED_SWITCH_ID,
+    CONF_CHARGER_MAX_CURRENT_LIMIT_SENSOR,
     CONF_DEBUG_LOGGING,
     CONF_EV_SOC_SENSOR,
+    CONF_PRICE_SENSOR,
+    CONF_STATUS_SENSOR,
     CONF_TARGET_SOC_LIMIT,
+    CONF_TIME_SCHEDULE_ENTITY,
+    DOMAIN,
     EASEE_STATUS_AWAITING_START,
     EASEE_STATUS_CHARGING,
     EASEE_STATUS_PAUSED,
     EASEE_STATUS_READY_TO_CHARGE,
-    EASEE_SERVICE_SET_DYNAMIC_CURRENT,
-    # REASON_SOC_LIMIT_REACHED, # Borttagen, används som sträng
-    ENTITY_ID_SUFFIX_SMART_ENABLE_SWITCH,
-    ENTITY_ID_SUFFIX_MAX_PRICE_NUMBER,
     ENTITY_ID_SUFFIX_ENABLE_SOLAR_CHARGING_SWITCH,
-    ENTITY_ID_SUFFIX_SOLAR_BUFFER_NUMBER,
+    ENTITY_ID_SUFFIX_MAX_PRICE_NUMBER,
     ENTITY_ID_SUFFIX_MIN_SOLAR_CHARGE_CURRENT_A_NUMBER,
+    ENTITY_ID_SUFFIX_SMART_ENABLE_SWITCH,
+    ENTITY_ID_SUFFIX_SOLAR_BUFFER_NUMBER,
 )
 from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
+from freezegun.api import FrozenDateTimeFactory
+import pytest
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_mock_service,
+)
+
+from homeassistant.const import STATE_OFF, STATE_ON
+from homeassistant.core import HomeAssistant
+import homeassistant.util.dt as dt_util
 
 # Lokalt definierade mock-konstanter för denna fil
 MOCK_PRICE_SENSOR_ID = "sensor.test_price_coordinator"

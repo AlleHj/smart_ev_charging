@@ -1,49 +1,49 @@
 # tests/test_connection_override.py
 """Tester för anslutningssekvenser och åsidosättande av extern paus."""
 
+
+from custom_components.smart_ev_charging.const import (
+    CONF_CHARGER_DEVICE,  # Korrekt importerad nu
+    CONF_CHARGER_DYNAMIC_CURRENT_SENSOR,
+    CONF_CHARGER_ENABLED_SWITCH_ID,
+    CONF_CHARGER_MAX_CURRENT_LIMIT_SENSOR,
+    CONF_DEBUG_LOGGING,
+    CONF_PRICE_SENSOR,
+    CONF_STATUS_SENSOR,  # Korrekt importerad nu
+    CONF_TIME_SCHEDULE_ENTITY,
+    CONTROL_MODE_MANUAL,
+    CONTROL_MODE_PRICE_TIME,
+    DOMAIN,
+    EASEE_SERVICE_SET_DYNAMIC_CURRENT,
+    EASEE_STATUS_AWAITING_START,
+    EASEE_STATUS_CHARGING,
+    EASEE_STATUS_DISCONNECTED,
+    ENTITY_ID_SUFFIX_ENABLE_SOLAR_CHARGING_SWITCH,
+    ENTITY_ID_SUFFIX_MAX_PRICE_NUMBER,
+    ENTITY_ID_SUFFIX_MIN_SOLAR_CHARGE_CURRENT_A_NUMBER,
+    ENTITY_ID_SUFFIX_SMART_ENABLE_SWITCH,
+    ENTITY_ID_SUFFIX_SOLAR_BUFFER_NUMBER,
+)
+from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
 import pytest
-import logging
-# from unittest.mock import patch # Tas bort om ej använd
-# from datetime import datetime, timedelta, timezone # Tas bort om ej använd
-# from typing import Set # Tas bort om ej använd
 
-from homeassistant.core import HomeAssistant
-from homeassistant.const import (
-    STATE_ON,
-    STATE_OFF,
-    STATE_UNAVAILABLE,
-)  # STATE_UNAVAILABLE används
 # from homeassistant.config_entries import ConfigEntryState # Tas bort om ej använd
-
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,  # Används
     async_mock_service,  # Används
     # async_fire_time_changed, # Tas bort om ej använd
 )
 
-from custom_components.smart_ev_charging.const import (
-    DOMAIN,
-    CONF_CHARGER_DEVICE,  # Korrekt importerad nu
-    CONF_STATUS_SENSOR,  # Korrekt importerad nu
-    CONF_CHARGER_ENABLED_SWITCH_ID,
-    CONF_PRICE_SENSOR,
-    CONF_TIME_SCHEDULE_ENTITY,
-    CONF_CHARGER_MAX_CURRENT_LIMIT_SENSOR,
-    CONF_DEBUG_LOGGING,
-    CONF_CHARGER_DYNAMIC_CURRENT_SENSOR,
-    EASEE_SERVICE_SET_DYNAMIC_CURRENT,
-    EASEE_STATUS_DISCONNECTED,
-    EASEE_STATUS_AWAITING_START,
-    EASEE_STATUS_CHARGING,
-    ENTITY_ID_SUFFIX_SMART_ENABLE_SWITCH,
-    ENTITY_ID_SUFFIX_MAX_PRICE_NUMBER,
-    ENTITY_ID_SUFFIX_ENABLE_SOLAR_CHARGING_SWITCH,
-    ENTITY_ID_SUFFIX_SOLAR_BUFFER_NUMBER,
-    ENTITY_ID_SUFFIX_MIN_SOLAR_CHARGE_CURRENT_A_NUMBER,
-    CONTROL_MODE_PRICE_TIME,
-    CONTROL_MODE_MANUAL,
-)
-from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
+from homeassistant.const import (
+    STATE_OFF,
+    STATE_ON,
+    STATE_UNAVAILABLE,
+)  # STATE_UNAVAILABLE används
+
+# from unittest.mock import patch # Tas bort om ej använd
+# from datetime import datetime, timedelta, timezone # Tas bort om ej använd
+# from typing import Set # Tas bort om ej använd
+from homeassistant.core import HomeAssistant
 
 # Lokalt definierade mock-konstanter för detta testfall
 MOCK_CHARGER_DEVICE_ID_CONN_OVERRIDE = (
@@ -107,8 +107,7 @@ async def setup_coordinator_conn_override(hass: HomeAssistant):
 async def test_charger_connection_sequence_and_pause_override(
     hass: HomeAssistant, setup_coordinator_conn_override: SmartEVChargingCoordinator
 ):
-    """
-    Testar en sekvens där bilen ansluts, laddning startar (Pris/Tid),
+    """Testar en sekvens där bilen ansluts, laddning startar (Pris/Tid),
     laddning pågår, pausas externt (status ändras till awaiting_start),
     och sedan omedelbart återupptas av integrationen.
 

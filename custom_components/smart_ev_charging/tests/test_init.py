@@ -1,26 +1,23 @@
 """Tester för grundläggande setup och unload av Smart EV Charging-integrationen."""
 
-from unittest.mock import patch
-
-from homeassistant.core import HomeAssistant
-from homeassistant.config_entries import ConfigEntryState
-from homeassistant.const import STATE_ON, STATE_OFF
-
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.smart_ev_charging.const import (
-    DOMAIN,
     CONF_CHARGER_DEVICE,
-    CONF_STATUS_SENSOR,
     CONF_CHARGER_ENABLED_SWITCH_ID,
-    CONF_PRICE_SENSOR,
     CONF_DEBUG_LOGGING,
+    CONF_PRICE_SENSOR,
+    CONF_STATUS_SENSOR,
+    DOMAIN,
 )
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from homeassistant.config_entries import ConfigEntryState
+from homeassistant.const import STATE_OFF, STATE_ON
+from homeassistant.core import HomeAssistant
 
 
 async def test_load_and_unload_entry(hass: HomeAssistant):
-    """
-    Testar att integrationen kan laddas och avladdas korrekt.
+    """Testar att integrationen kan laddas och avladdas korrekt.
 
     SYFTE:
         Att verifiera den mest grundläggande livscykeln för integrationen:

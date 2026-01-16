@@ -1,36 +1,29 @@
 # tests/test_loggning_vid_frånkoppling.py
-"""
-Tester för att verifiera korrekt logghantering och tillståndsåterställning
+"""Tester för att verifiera korrekt logghantering och tillståndsåterställning
 när en pågående laddningssession avbryts genom att bilen kopplas från.
 """
 
-import pytest
 import logging
-from unittest.mock import patch
-from datetime import datetime, timezone
-
-from homeassistant.core import HomeAssistant
-from homeassistant.const import STATE_ON, STATE_OFF
-from homeassistant.util import dt as dt_util
-
-from pytest_homeassistant_custom_component.common import (
-    MockConfigEntry,
-    async_mock_service,
-)
 
 from custom_components.smart_ev_charging.const import (
-    DOMAIN,
     CONF_CHARGER_DEVICE,
-    CONF_STATUS_SENSOR,
     CONF_CHARGER_ENABLED_SWITCH_ID,
     CONF_PRICE_SENSOR,
+    CONF_STATUS_SENSOR,
     CONF_TIME_SCHEDULE_ENTITY,
-    EASEE_STATUS_CHARGING,
-    EASEE_STATUS_DISCONNECTED,
     CONTROL_MODE_MANUAL,
     CONTROL_MODE_PRICE_TIME,
+    DOMAIN,
+    EASEE_STATUS_CHARGING,
+    EASEE_STATUS_DISCONNECTED,
 )
 from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
+import pytest
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from homeassistant.const import STATE_ON
+from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
 
 # Mockade entitets-ID:n för externa sensorer
 MOCK_PRICE_SENSOR_ID = "sensor.test_price_disconnect"
@@ -51,8 +44,7 @@ def enable_debug_logging():
 
 
 async def test_logging_and_state_on_disconnect(hass: HomeAssistant, caplog):
-    """
-    Testar att loggningen är korrekt och inte upprepas vid frånkoppling.
+    """Testar att loggningen är korrekt och inte upprepas vid frånkoppling.
 
     SYFTE:
         Att verifiera att:

@@ -1,53 +1,49 @@
 # test_solar_to_price_time_transition.py
-"""
-Testar övergången från Solenergiladdning till Pris/Tid-laddning
+"""Testar övergången från Solenergiladdning till Pris/Tid-laddning
 när Pris/Tid-schemat blir aktivt.
 """
 
-import pytest
+from datetime import UTC, datetime, timedelta
 import logging
-from unittest.mock import patch
 import math
-from datetime import datetime, timedelta, timezone
-
-from homeassistant.core import HomeAssistant
-from homeassistant.const import STATE_ON, STATE_OFF, STATE_UNAVAILABLE
-from homeassistant.util import dt as dt_util
-
-from pytest_homeassistant_custom_component.common import (
-    MockConfigEntry,
-    async_mock_service,
-    async_fire_time_changed,
-)
+from unittest.mock import patch
 
 from custom_components.smart_ev_charging.const import (
-    DOMAIN,
     CONF_CHARGER_DEVICE,
-    CONF_STATUS_SENSOR,
-    CONF_CHARGER_ENABLED_SWITCH_ID,
-    CONF_PRICE_SENSOR,
-    CONF_TIME_SCHEDULE_ENTITY,
-    CONF_SOLAR_PRODUCTION_SENSOR,
-    CONF_HOUSE_POWER_SENSOR,
-    CONF_SOLAR_SCHEDULE_ENTITY,  # Även om det inte används, behövs det för config
-    CONF_CHARGER_MAX_CURRENT_LIMIT_SENSOR,
     CONF_CHARGER_DYNAMIC_CURRENT_SENSOR,
+    CONF_CHARGER_ENABLED_SWITCH_ID,
+    CONF_CHARGER_MAX_CURRENT_LIMIT_SENSOR,
     CONF_DEBUG_LOGGING,
-    ENTITY_ID_SUFFIX_SMART_ENABLE_SWITCH,
-    ENTITY_ID_SUFFIX_MAX_PRICE_NUMBER,
-    ENTITY_ID_SUFFIX_ENABLE_SOLAR_CHARGING_SWITCH,
-    ENTITY_ID_SUFFIX_SOLAR_BUFFER_NUMBER,
-    ENTITY_ID_SUFFIX_MIN_SOLAR_CHARGE_CURRENT_A_NUMBER,
-    EASEE_SERVICE_SET_DYNAMIC_CURRENT,
+    CONF_HOUSE_POWER_SENSOR,
+    CONF_PRICE_SENSOR,
+    CONF_SOLAR_PRODUCTION_SENSOR,
+    CONF_SOLAR_SCHEDULE_ENTITY,  # Även om det inte används, behövs det för config
+    CONF_STATUS_SENSOR,
+    CONF_TIME_SCHEDULE_ENTITY,
+    CONTROL_MODE_PRICE_TIME,
+    CONTROL_MODE_SOLAR_SURPLUS,
+    DOMAIN,
     EASEE_SERVICE_RESUME_CHARGING,
     EASEE_STATUS_CHARGING,
-    CONTROL_MODE_SOLAR_SURPLUS,
-    CONTROL_MODE_PRICE_TIME,
-    MIN_CHARGE_CURRENT_A,
+    ENTITY_ID_SUFFIX_ENABLE_SOLAR_CHARGING_SWITCH,
+    ENTITY_ID_SUFFIX_MAX_PRICE_NUMBER,
+    ENTITY_ID_SUFFIX_MIN_SOLAR_CHARGE_CURRENT_A_NUMBER,
+    ENTITY_ID_SUFFIX_SMART_ENABLE_SWITCH,
+    ENTITY_ID_SUFFIX_SOLAR_BUFFER_NUMBER,
     MAX_CHARGE_CURRENT_A_HW_DEFAULT,  # Antag att detta är "max"
+    MIN_CHARGE_CURRENT_A,
     SOLAR_SURPLUS_DELAY_SECONDS,
 )
 from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
+import pytest
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_mock_service,
+)
+
+from homeassistant.const import STATE_OFF, STATE_ON
+from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
 
 # Konstanter för testet
 PRICE_TIME_SCHEDULE_ID = "schedule.price_time_charging_20_07"
@@ -191,7 +187,7 @@ async def test_solar_to_price_time_transition(hass: HomeAssistant, caplog):
         # Scheman: Pris/Tid är AV, Sol är PÅ (genom att inte ha ett schema och switchen är PÅ)
         # Starttid för simuleringen: 2025-05-30 19:00:00 UTC
         # Notera: dt_util.utcnow() i HA tester kan vara fixerad, vi använder specifik tid.
-        start_time_utc = datetime(2025, 5, 30, 19, 0, 0, tzinfo=timezone.utc)
+        start_time_utc = datetime(2025, 5, 30, 19, 0, 0, tzinfo=UTC)
         hass.states.async_set(
             PRICE_TIME_SCHEDULE_ID, STATE_OFF
         )  # Pris/Tid-schemat är AV kl 19:00
@@ -261,7 +257,7 @@ async def test_solar_to_price_time_transition(hass: HomeAssistant, caplog):
 
         # 2. ACT & ASSERT - Steg 2: Klockan slår 20:00 (Pris/Tid tar över)
         print("TESTSTEG 2: Kl. 20:00 - Pris/Tid ska ta över")
-        time_at_20_00_utc = datetime(2025, 5, 30, 20, 0, 0, tzinfo=timezone.utc)
+        time_at_20_00_utc = datetime(2025, 5, 30, 20, 0, 0, tzinfo=UTC)
 
         # Uppdatera schemat till PÅ
         hass.states.async_set(PRICE_TIME_SCHEDULE_ID, STATE_ON)

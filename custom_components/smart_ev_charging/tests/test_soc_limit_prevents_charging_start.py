@@ -1,39 +1,36 @@
 # tests/test_soc_limit_prevents_charging_start.py
-"""
-Test för att verifiera att laddning inte startar om SoC-gränsen redan är nådd.
+"""Test för att verifiera att laddning inte startar om SoC-gränsen redan är nådd.
 """
 
-import pytest
 import logging
-from unittest.mock import patch
 
-from homeassistant.core import HomeAssistant
-from homeassistant.const import STATE_ON, STATE_OFF
-
+from custom_components.smart_ev_charging.const import (
+    CONF_CHARGER_DEVICE,
+    CONF_CHARGER_ENABLED_SWITCH_ID,
+    CONF_DEBUG_LOGGING,  # Importera om den ska användas i MockConfigEntry
+    CONF_EV_SOC_SENSOR,
+    CONF_PRICE_SENSOR,
+    CONF_STATUS_SENSOR,
+    CONF_TARGET_SOC_LIMIT,
+    CONF_TIME_SCHEDULE_ENTITY,
+    CONTROL_MODE_MANUAL,
+    DOMAIN,
+    EASEE_STATUS_READY_TO_CHARGE,
+    ENTITY_ID_SUFFIX_ENABLE_SOLAR_CHARGING_SWITCH,
+    ENTITY_ID_SUFFIX_MAX_PRICE_NUMBER,
+    ENTITY_ID_SUFFIX_MIN_SOLAR_CHARGE_CURRENT_A_NUMBER,
+    ENTITY_ID_SUFFIX_SMART_ENABLE_SWITCH,
+    ENTITY_ID_SUFFIX_SOLAR_BUFFER_NUMBER,
+)
+from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
+import pytest
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
     async_mock_service,
 )
 
-from custom_components.smart_ev_charging.const import (
-    DOMAIN,
-    CONF_CHARGER_DEVICE,
-    CONF_STATUS_SENSOR,
-    CONF_CHARGER_ENABLED_SWITCH_ID,
-    CONF_PRICE_SENSOR,
-    CONF_TIME_SCHEDULE_ENTITY,
-    CONF_EV_SOC_SENSOR,
-    CONF_TARGET_SOC_LIMIT,
-    CONF_DEBUG_LOGGING,  # Importera om den ska användas i MockConfigEntry
-    EASEE_STATUS_READY_TO_CHARGE,
-    CONTROL_MODE_MANUAL,
-    ENTITY_ID_SUFFIX_SMART_ENABLE_SWITCH,
-    ENTITY_ID_SUFFIX_MAX_PRICE_NUMBER,
-    ENTITY_ID_SUFFIX_ENABLE_SOLAR_CHARGING_SWITCH,
-    ENTITY_ID_SUFFIX_SOLAR_BUFFER_NUMBER,
-    ENTITY_ID_SUFFIX_MIN_SOLAR_CHARGE_CURRENT_A_NUMBER,
-)
-from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
+from homeassistant.const import STATE_OFF, STATE_ON
+from homeassistant.core import HomeAssistant
 
 # Mockade entitets-ID:n
 MOCK_STATUS_SENSOR_ID = "sensor.test_charger_status_soc_prevent"
@@ -52,8 +49,7 @@ def enable_debug_logging():
 
 
 async def test_charging_is_prevented_by_soc_limit(hass: HomeAssistant, caplog):
-    """
-    Testar att ingen laddning startar när SoC-gränsen är uppnådd,
+    """Testar att ingen laddning startar när SoC-gränsen är uppnådd,
     trots att villkoren för Pris/Tid-laddning är uppfyllda.
 
     SYFTE:
@@ -191,4 +187,4 @@ async def test_charging_is_prevented_by_soc_limit(hass: HomeAssistant, caplog):
     assert expected_log_message in caplog.text, (
         "En förklarande loggpost om att SoC-gränsen har nåtts saknas."
     )
-    print(f"\nTestet lyckades: Laddning förhindrades korrekt av SoC-gränsen.")
+    print("\nTestet lyckades: Laddning förhindrades korrekt av SoC-gränsen.")
