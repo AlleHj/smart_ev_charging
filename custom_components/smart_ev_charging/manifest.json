@@ -5,8 +5,9 @@
     "@AlleHj"
   ],
   "config_flow": true,
-  "documentation": "https://github.com/AlleHj/home-assistant-smart_ev_charging/blob/master/HELP.md",
+  "documentation": "https://github.com/AlleHj/smart_ev_charging/blob/master/HELP.md",
   "iot_class": "local_push",
+  "issue_tracker": "https://github.com/AlleHj/smart_ev_charging/issues",
   "loggers": [
     "custom_components.smart_ev_charging"
   ],
