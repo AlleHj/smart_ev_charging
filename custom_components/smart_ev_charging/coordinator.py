@@ -2,7 +2,7 @@
 
 import logging
 from datetime import timedelta, datetime
-from typing import Any, cast, Callable
+from typing import Any, cast
 import math
 import asyncio
 
@@ -20,7 +20,6 @@ from homeassistant.const import (
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
     SERVICE_TURN_ON,
-    SERVICE_TURN_OFF,
     ATTR_ENTITY_ID,
     UnitOfPower,
 )
@@ -37,7 +36,6 @@ from .const import (
     CONF_SOLAR_SCHEDULE_ENTITY,
     CONF_CHARGER_MAX_CURRENT_LIMIT_SENSOR,
     CONF_CHARGER_DYNAMIC_CURRENT_SENSOR,
-    CONF_SCAN_INTERVAL,
     CONF_CHARGER_ENABLED_SWITCH_ID,
     CONF_EV_SOC_SENSOR,
     CONF_TARGET_SOC_LIMIT,
@@ -46,14 +44,12 @@ from .const import (
     ENTITY_ID_SUFFIX_ENABLE_SOLAR_CHARGING_SWITCH,
     ENTITY_ID_SUFFIX_SOLAR_BUFFER_NUMBER,
     ENTITY_ID_SUFFIX_MIN_SOLAR_CHARGE_CURRENT_A_NUMBER,
-    ENTITY_ID_SUFFIX_ACTIVE_CONTROL_MODE_SENSOR,
     EASEE_STATUS_DISCONNECTED,
     EASEE_STATUS_AWAITING_START,
     EASEE_STATUS_READY_TO_CHARGE,
     EASEE_STATUS_CHARGING,
     EASEE_STATUS_PAUSED,
     EASEE_STATUS_COMPLETED,
-    EASEE_STATUS_ERROR,
     EASEE_STATUS_OFFLINE,
     CONTROL_MODE_PRICE_TIME,
     CONTROL_MODE_SOLAR_SURPLUS,
@@ -1065,8 +1061,6 @@ class SmartEVChargingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             else True  # Annars, antag att det är aktivt.
         )
 
-        # Hämtar aktuell husförbrukning i Watt via en hjälpmetod.
-        current_house_power_w = await self._get_power_value(CONF_HOUSE_POWER_SENSOR)
         # Hämtar aktuell solproduktion i Watt. Om sensorn inte finns eller är otillgänglig, använd 0.0 W.
         current_solar_production_w = (
             await self._get_power_value(CONF_SOLAR_PRODUCTION_SENSOR)
