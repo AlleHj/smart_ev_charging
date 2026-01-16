@@ -1,11 +1,15 @@
 {
   "domain": "smart_ev_charging",
   "name": "Avancerad Elbilsladdning",
-  "codeowners": ["@AlleHj"],
-  "requirements": [],
-  "iot_class": "local_push",
-  "version": "0.2.0",
+  "codeowners": [
+    "@AlleHj"
+  ],
   "config_flow": true,
   "documentation": "https://github.com/AlleHj/home-assistant-smart_ev_charging/blob/master/HELP.md",
-  "loggers": ["custom_components.smart_ev_charging"]
+  "iot_class": "local_push",
+  "loggers": [
+    "custom_components.smart_ev_charging"
+  ],
+  "requirements": [],
+  "version": "0.2.0"
 }
