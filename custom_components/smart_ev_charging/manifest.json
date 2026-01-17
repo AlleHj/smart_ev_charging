@@ -12,5 +12,5 @@
     "custom_components.smart_ev_charging"
   ],
   "requirements": [],
-  "version": "0.2.6"
+  "version": "0.3.0"
 }
