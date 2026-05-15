@@ -1,4 +1,4 @@
-# tests/test_active_control_mode_sensor.py
+# Version: 2026-05-15 - Verifierad fil för Home Assistant 2026.x kompabilitet.
 """Tester för att verifiera att sensorn för aktivt styrningsläge
 uppdateras korrekt baserat på koordinatorns beslut.
 """

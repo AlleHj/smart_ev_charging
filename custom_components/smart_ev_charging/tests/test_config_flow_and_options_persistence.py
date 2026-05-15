@@ -1,4 +1,4 @@
-# test_config_flow_and_options_persistence.py
+# Version: 2026-05-15 - Verifierad fil för Home Assistant 2026.x kompabilitet.
 """Testar hela flödet från initial konfiguration till ändringar via alternativ,
 med fokus på att verifiera att valda sensorer och värden sparas och
 återläses korrekt.
@@ -31,10 +31,6 @@ import pytest
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_OFF, STATE_ON
 from homeassistant.core import HomeAssistant
-
-# from custom_components.smart_ev_charging.config_flow import (
-#     OPTIONAL_ENTITY_CONF_KEYS # Används inte explicit just nu, men bra att ha om man itererar
-# )
 
 
 MOCK_EASEE_DEVICE_ID = "easee_mock_device_for_flow_test"
@@ -243,8 +239,5 @@ async def test_setup_and_options_modification_flow(hass: HomeAssistant):
     )
     assert result_options_final_check is not None
     assert result_options_final_check["type"] == "form"
-    # Formuläret här skulle populeras från updated_entry.options,
-    # så det faktum att vi kunde öppna det och att updated_entry.options är korrekta
-    # är en tillräcklig verifiering för detta teststeg.
 
     print("Testet slutfört framgångsrikt!")
