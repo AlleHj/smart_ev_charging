@@ -1,6 +1,5 @@
 """Tester för grundläggande setup och unload av Smart EV Charging-integrationen."""
 
-
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import STATE_OFF, STATE_ON
 from homeassistant.core import HomeAssistant

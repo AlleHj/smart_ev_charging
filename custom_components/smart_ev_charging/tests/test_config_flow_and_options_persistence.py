@@ -222,7 +222,8 @@ async def test_setup_and_options_modification_flow(hass: HomeAssistant):
         updated_entry.options[CONF_EV_SOC_SENSOR] is None
     )  # Verifiera att den är borttagen/None
     assert (
-        updated_entry.options[CONF_CHARGER_DYNAMIC_CURRENT_SENSOR] == MOCK_DYN_CURRENT_LIMIT_ID
+        updated_entry.options[CONF_CHARGER_DYNAMIC_CURRENT_SENSOR]
+        == MOCK_DYN_CURRENT_LIMIT_ID
     )  # Verifiera nytt värde
     assert (
         updated_entry.options[CONF_TARGET_SOC_LIMIT] == random_soc_limit

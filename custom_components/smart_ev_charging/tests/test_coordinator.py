@@ -308,4 +308,3 @@ async def test_full_day_price_time_simulation(
 
     total_expected_calls = num_resume_expected + num_pause_expected
     assert len(action_command_calls) == total_expected_calls
-    

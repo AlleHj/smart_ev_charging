@@ -1,7 +1,6 @@
 # tests/test_connection_override.py
 """Tester för anslutningssekvenser och åsidosättande av extern paus."""
 
-
 import pytest
 from homeassistant.const import (
     STATE_OFF,

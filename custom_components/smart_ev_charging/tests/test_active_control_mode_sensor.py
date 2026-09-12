@@ -124,7 +124,6 @@ async def test_active_control_mode_sensor_updates(hass: HomeAssistant, freezer):
         hass, "easee", EASEE_SERVICE_ACTION_COMMAND
     )  # För action_command (start/pause)
 
-
     # --- 2. TESTSTEG 1: PRIS/TID ---
     # SYFTE: Verifiera att sensorn visar PRIS_TID när dessa villkor är uppfyllda.
     print("\nTESTSTEG 1: Verifierar PRIS/TID-läge")

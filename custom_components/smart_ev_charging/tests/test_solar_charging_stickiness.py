@@ -98,8 +98,7 @@ async def test_solar_charging_does_not_stop_on_minor_dip(
     setup_coordinator_for_solar_test: SmartEVChargingCoordinator,
     freezer,
 ):
-    """SYFTE: Verifiera att laddningen fortsätter med 5A även om starttröskeln är 6A.
-    """
+    """SYFTE: Verifiera att laddningen fortsätter med 5A även om starttröskeln är 6A."""
     coordinator = setup_coordinator_for_solar_test
     set_current_calls = async_mock_service(hass, "easee", "set_charger_dynamic_limit")
     action_command_calls = async_mock_service(hass, "easee", "action_command")

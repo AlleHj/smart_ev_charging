@@ -1,6 +1,5 @@
 # tests/test_soc_limit_prevents_charging_start.py
-"""Test för att verifiera att laddning inte startar om SoC-gränsen redan är nådd.
-"""
+"""Test för att verifiera att laddning inte startar om SoC-gränsen redan är nådd."""
 
 import logging
 
