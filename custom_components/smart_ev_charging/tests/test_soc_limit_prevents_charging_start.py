@@ -1,8 +1,15 @@
 # tests/test_soc_limit_prevents_charging_start.py
-"""Test för att verifiera att laddning inte startar om SoC-gränsen redan är nådd.
-"""
+"""Test för att verifiera att laddning inte startar om SoC-gränsen redan är nådd."""
 
 import logging
+
+import pytest
+from homeassistant.const import STATE_OFF, STATE_ON
+from homeassistant.core import HomeAssistant
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_mock_service,
+)
 
 from custom_components.smart_ev_charging.const import (
     CONF_CHARGER_DEVICE,
@@ -23,14 +30,6 @@ from custom_components.smart_ev_charging.const import (
     ENTITY_ID_SUFFIX_SOLAR_BUFFER_NUMBER,
 )
 from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
-import pytest
-from pytest_homeassistant_custom_component.common import (
-    MockConfigEntry,
-    async_mock_service,
-)
-
-from homeassistant.const import STATE_OFF, STATE_ON
-from homeassistant.core import HomeAssistant
 
 # Mockade entitets-ID:n
 MOCK_STATUS_SENSOR_ID = "sensor.test_charger_status_soc_prevent"

@@ -1,6 +1,24 @@
 # tests/test_connection_override.py
 """Tester för anslutningssekvenser och åsidosättande av extern paus."""
 
+import pytest
+from homeassistant.const import (
+    STATE_OFF,
+    STATE_ON,
+    STATE_UNAVAILABLE,
+)  # STATE_UNAVAILABLE används
+
+# from unittest.mock import patch # Tas bort om ej använd
+# from datetime import datetime, timedelta, timezone # Tas bort om ej använd
+# from typing import Set # Tas bort om ej använd
+from homeassistant.core import HomeAssistant
+
+# from homeassistant.config_entries import ConfigEntryState # Tas bort om ej använd
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,  # Används
+    async_mock_service,  # Används
+    # async_fire_time_changed, # Tas bort om ej använd
+)
 
 from custom_components.smart_ev_charging.const import (
     CONF_CHARGER_DEVICE,  # Korrekt importerad nu
@@ -25,25 +43,6 @@ from custom_components.smart_ev_charging.const import (
     ENTITY_ID_SUFFIX_SOLAR_BUFFER_NUMBER,
 )
 from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
-import pytest
-
-# from homeassistant.config_entries import ConfigEntryState # Tas bort om ej använd
-from pytest_homeassistant_custom_component.common import (
-    MockConfigEntry,  # Används
-    async_mock_service,  # Används
-    # async_fire_time_changed, # Tas bort om ej använd
-)
-
-from homeassistant.const import (
-    STATE_OFF,
-    STATE_ON,
-    STATE_UNAVAILABLE,
-)  # STATE_UNAVAILABLE används
-
-# from unittest.mock import patch # Tas bort om ej använd
-# from datetime import datetime, timedelta, timezone # Tas bort om ej använd
-# from typing import Set # Tas bort om ej använd
-from homeassistant.core import HomeAssistant
 
 # Lokalt definierade mock-konstanter för detta testfall
 MOCK_CHARGER_DEVICE_ID_CONN_OVERRIDE = (

@@ -1,12 +1,11 @@
 # File version: 2025-06-05 0.2.0 // ÄNDRA HÄR
 """Config flow for Smart EV Charging integration."""
 
-from collections import OrderedDict
 import logging
+from collections import OrderedDict
 from typing import Any
 
 import voluptuous as vol
-
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry, ConfigFlow, OptionsFlow
 from homeassistant.core import callback

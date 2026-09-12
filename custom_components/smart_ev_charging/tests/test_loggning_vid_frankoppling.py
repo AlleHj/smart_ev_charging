@@ -5,6 +5,12 @@ när en pågående laddningssession avbryts genom att bilen kopplas från.
 
 import logging
 
+import pytest
+from homeassistant.const import STATE_ON
+from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
 from custom_components.smart_ev_charging.const import (
     CONF_CHARGER_DEVICE,
     CONF_CHARGER_ENABLED_SWITCH_ID,
@@ -18,12 +24,6 @@ from custom_components.smart_ev_charging.const import (
     EASEE_STATUS_DISCONNECTED,
 )
 from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
-import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-
-from homeassistant.const import STATE_ON
-from homeassistant.core import HomeAssistant
-from homeassistant.util import dt as dt_util
 
 # Mockade entitets-ID:n för externa sensorer
 MOCK_PRICE_SENSOR_ID = "sensor.test_price_disconnect"

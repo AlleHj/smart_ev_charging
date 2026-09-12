@@ -1,65 +1,67 @@
 # File version: 2025-06-05 0.2.0 // ÄNDRA HÄR
 
-import logging
-from datetime import timedelta, datetime
-from typing import Any, cast
-import math
 import asyncio
+import logging
+import math
+from datetime import datetime, timedelta
+from typing import Any, cast
 
-from homeassistant.core import HomeAssistant, Event, CALLBACK_TYPE, callback
+import homeassistant.util.dt as dt_util
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-from homeassistant.helpers.entity_registry import (
-    async_get as async_get_entity_registry,
-    EntityRegistry,
-)
-from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.const import (
-    STATE_ON,
+    ATTR_ENTITY_ID,
+    SERVICE_TURN_ON,
     STATE_OFF,
+    STATE_ON,
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
-    SERVICE_TURN_ON,
-    ATTR_ENTITY_ID,
     UnitOfPower,
 )
-import homeassistant.util.dt as dt_util
+from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant, callback
+from homeassistant.helpers.entity_registry import (
+    EntityRegistry,
+)
+from homeassistant.helpers.entity_registry import (
+    async_get as async_get_entity_registry,
+)
+from homeassistant.helpers.event import async_track_state_change_event
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
-    DOMAIN,
     CONF_CHARGER_DEVICE,
-    CONF_STATUS_SENSOR,
-    CONF_PRICE_SENSOR,
-    CONF_TIME_SCHEDULE_ENTITY,
-    CONF_HOUSE_POWER_SENSOR,
-    CONF_SOLAR_PRODUCTION_SENSOR,
-    CONF_SOLAR_SCHEDULE_ENTITY,
-    CONF_CHARGER_MAX_CURRENT_LIMIT_SENSOR,
     CONF_CHARGER_DYNAMIC_CURRENT_SENSOR,
     CONF_CHARGER_ENABLED_SWITCH_ID,
+    CONF_CHARGER_MAX_CURRENT_LIMIT_SENSOR,
+    CONF_DEBUG_LOGGING,
     CONF_EV_SOC_SENSOR,
+    CONF_HOUSE_POWER_SENSOR,
+    CONF_PRICE_SENSOR,
+    CONF_SOLAR_PRODUCTION_SENSOR,
+    CONF_SOLAR_SCHEDULE_ENTITY,
+    CONF_STATUS_SENSOR,
     CONF_TARGET_SOC_LIMIT,
-    ENTITY_ID_SUFFIX_SMART_ENABLE_SWITCH,
-    ENTITY_ID_SUFFIX_MAX_PRICE_NUMBER,
-    ENTITY_ID_SUFFIX_ENABLE_SOLAR_CHARGING_SWITCH,
-    ENTITY_ID_SUFFIX_SOLAR_BUFFER_NUMBER,
-    ENTITY_ID_SUFFIX_MIN_SOLAR_CHARGE_CURRENT_A_NUMBER,
-    EASEE_STATUS_DISCONNECTED,
-    EASEE_STATUS_AWAITING_START,
-    EASEE_STATUS_READY_TO_CHARGE,
-    EASEE_STATUS_CHARGING,
-    EASEE_STATUS_PAUSED,
-    EASEE_STATUS_COMPLETED,
-    EASEE_STATUS_OFFLINE,
+    CONF_TIME_SCHEDULE_ENTITY,
+    CONTROL_MODE_MANUAL,
     CONTROL_MODE_PRICE_TIME,
     CONTROL_MODE_SOLAR_SURPLUS,
-    CONTROL_MODE_MANUAL,
-    MIN_CHARGE_CURRENT_A,
+    DOMAIN,
+    EASEE_STATUS_AWAITING_START,
+    EASEE_STATUS_CHARGING,
+    EASEE_STATUS_COMPLETED,
+    EASEE_STATUS_DISCONNECTED,
+    EASEE_STATUS_OFFLINE,
+    EASEE_STATUS_PAUSED,
+    EASEE_STATUS_READY_TO_CHARGE,
+    ENTITY_ID_SUFFIX_ENABLE_SOLAR_CHARGING_SWITCH,
+    ENTITY_ID_SUFFIX_MAX_PRICE_NUMBER,
+    ENTITY_ID_SUFFIX_MIN_SOLAR_CHARGE_CURRENT_A_NUMBER,
+    ENTITY_ID_SUFFIX_SMART_ENABLE_SWITCH,
+    ENTITY_ID_SUFFIX_SOLAR_BUFFER_NUMBER,
     MAX_CHARGE_CURRENT_A_HW_DEFAULT,
-    POWER_MARGIN_W,
+    MIN_CHARGE_CURRENT_A,
     PHASES,
+    POWER_MARGIN_W,
     VOLTAGE_PHASE_NEUTRAL,
-    CONF_DEBUG_LOGGING,
 )
 
 _LOGGER = logging.getLogger(f"custom_components.{DOMAIN}")
@@ -84,7 +86,7 @@ class SmartEVChargingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             update_interval=timedelta(seconds=scan_interval_seconds),
         )
         _LOGGER.info(
-            "SmartEVChargingCoordinator initialiserad med update_interval: %s sekunder.",
+            "SmartEVChargingCoordinator initialiserad med update_interval %s sekunder.",
             self.update_interval,
         )
 
@@ -268,8 +270,8 @@ class SmartEVChargingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if self._debug_logging:
                 _LOGGER.debug("Koordinator: Interna ID:n OK.")
             return True
-        except Exception as e:
-            _LOGGER.error("Fel i _resolve_internal_entities: %s", e, exc_info=True)
+        except Exception:
+            _LOGGER.exception("Fel i _resolve_internal_entities")
             self._internal_entities_resolved = False
             return False
 
@@ -309,9 +311,8 @@ class SmartEVChargingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             _LOGGER.info("Inga externa entiteter konfigurerade för lyssning.")
 
     def _remove_listeners(self) -> None:
-        if self.listeners:
-            if self._debug_logging:
-                _LOGGER.debug("Tar bort %s lyssnare.", len(self.listeners))
+        if self.listeners and self._debug_logging:
+            _LOGGER.debug("Tar bort %s lyssnare.", len(self.listeners))
         while self.listeners:
             unsub = self.listeners.pop()
             unsub()
@@ -673,7 +674,7 @@ class SmartEVChargingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 #             {
                 #                 "device_id": self.config.get(
                 #                     CONF_CHARGER_DEVICE
-                #                 ),  # Enhets-ID för laddaren.
+                #             ),  # Enhets-ID för laddaren.
                 #                 "current": current_a,  # Den nya strömgränsen.
                 #                 "time_to_live": 0,  # Parameter för hur länge gränsen ska gälla (0 = tills vidare).
                 #             },
@@ -795,7 +796,7 @@ class SmartEVChargingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 # ):
                 #     # Om ja, logga att vi startar/återupptar eller justerar ström.
                 #     _LOGGER.info(
-                #         "Startar/återupptar laddning eller justerar ström till %.1fA. Anledning: %s. Status: %s",
+                #         "Startar/återupptar laddning eller justerar ström till %.1fA. Anledning. Status",
                 #         current_a,  # Målström.
                 #         reason,  # Anledning till åtgärden.
                 #         charger_status,  # Nuvarande status.
@@ -819,7 +820,7 @@ class SmartEVChargingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 #             {
                 #                 "device_id": self.config.get(
                 #                     CONF_CHARGER_DEVICE
-                #                 ),  # Enhets-ID.
+                #             ),  # Enhets-ID.
                 #                 "action_command": "start",  # Kommando för att starta.
                 #             },
                 #             blocking=False,  # Kör asynkront.
@@ -830,7 +831,7 @@ class SmartEVChargingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 #     ):  # Om ingen sessionstid är satt (dvs. ny session).
                 #         # Logga att en ny session startas.
                 #         _LOGGER.info(
-                #             "Startar ny laddningssession. Anledning: %s",
+                #             "Startar ny laddningssession. Anledning",
                 #             f"Laddning startad/återupptagen ({reason})",
                 #         )
                 #         # Sätt starttiden för sessionen till nuvarande tid (UTC).
@@ -840,7 +841,7 @@ class SmartEVChargingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 # elif charger_status == EASEE_STATUS_CHARGING:
                 #     # Logga att vi justerar strömmen om det behövs.
                 #     _LOGGER.debug(
-                #         "Laddning pågår. Justerar dynamisk ström vid behov till %.1fA. Anledning: %s",
+                #         "Laddning pågår. Justerar dynamisk ström vid behov till %.1fA. Anledning",
                 #         current_a,
                 #         reason,
                 #     )
@@ -853,7 +854,7 @@ class SmartEVChargingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 # ):
                 #     # Logga en varning om detta.
                 #     _LOGGER.warning(
-                #         "Laddning begärd, men laddaren är frånkopplad/offline (status: %s).",
+                #         "Laddning begärd, men laddaren är frånkopplad/offline (status).",
                 #         charger_status,
                 #     )
                 #     # Om en session var aktiv, återställ sessionsdata.
@@ -864,7 +865,7 @@ class SmartEVChargingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 # # Annat fall: Laddning begärs men statusen är inte optimal för start (t.ex. error).
                 # else:
                 #     _LOGGER.info(
-                #         "Laddning begärd (Anledning: %s), men laddarstatus är %s. Inväntar lämpligt tillstånd.",
+                #         "Laddning begärd (Anledning), men laddarstatus är %s. Inväntar lämpligt tillstånd.",
                 #         reason,
                 #         charger_status,
                 #     )
@@ -929,9 +930,9 @@ class SmartEVChargingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                             f"Laddningssession avslutad (status: {charger_status}, Anledning: {reason})"
                         )
         # Fångar upp eventuella oväntade fel under styrningen av laddaren.
-        except Exception as e:
-            _LOGGER.error(
-                "Fel vid styrning av laddaren: %s", e, exc_info=True
+        except Exception:
+            _LOGGER.exception(
+                "Fel vid styrning av laddaren"
             )  # Logga felet med traceback.
 
     # Definierar en asynkron metod (coroutine) med namnet _async_update_data.
@@ -948,24 +949,25 @@ class SmartEVChargingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             _LOGGER.debug("Koordinatorn kör _async_update_data")
 
         # Kontrollerar om de interna entiteterna (switchar, nummer etc. som skapas av denna integration) har blivit lösta (deras entity_id har hittats).
-        if not self._internal_entities_resolved:
-            # Om de inte är lösta, försök att lösa dem nu genom att anropa _resolve_internal_entities.
-            if not await self._resolve_internal_entities():
-                # Om de fortfarande inte kunde lösas, logga en varning.
-                _LOGGER.warning(
-                    "Interna entiteter kunde inte lösas, avbryter uppdateringscykeln."
-                )
-                # Avbryt uppdateringscykeln och returnera befintlig data (om någon finns),
-                # annars returnera ett standardobjekt som indikerar manuellt läge och väntan.
-                # Detta förhindrar fel om integrationen inte är fullständigt initialiserad.
-                return (
-                    self.data  # Returnera tidigare data om den finns.
-                    if self.data  # Kontrollera om self.data har ett värde.
-                    else {  # Annars, returnera ett standardobjekt.
-                        "active_control_mode": CONTROL_MODE_MANUAL,  # Sätt aktivt läge till manuellt.
-                        "should_charge_reason": "Väntar på interna entiteter.",  # Ange anledning.
-                    }
-                )
+        if (
+            not self._internal_entities_resolved
+            and not await self._resolve_internal_entities()
+        ):
+            # Om de fortfarande inte kunde lösas, logga en varning.
+            _LOGGER.warning(
+                "Interna entiteter kunde inte lösas, avbryter uppdateringscykeln."
+            )
+            # Avbryt uppdateringscykeln och returnera befintlig data (om någon finns),
+            # annars returnera ett standardobjekt som indikerar manuellt läge och väntan.
+            # Detta förhindrar fel om integrationen inte är fullständigt initialiserad.
+            return (
+                self.data  # Returnera tidigare data om den finns.
+                if self.data  # Kontrollera om self.data har ett värde.
+                else {  # Annars, returnera ett standardobjekt.
+                    "active_control_mode": CONTROL_MODE_MANUAL,  # Sätt aktivt läge till manuellt.
+                    "should_charge_reason": "Väntar på interna entiteter.",  # Ange anledning.
+                }
+            )
 
         # Hämtar den nuvarande tiden i UTC-format. Används för tidsbaserade jämförelser.
         current_time = dt_util.utcnow()

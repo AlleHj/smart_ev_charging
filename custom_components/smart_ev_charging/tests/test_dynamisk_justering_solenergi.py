@@ -5,6 +5,15 @@
 Fokuserar på beräkning av överskott och anrop till set_dynamic_current.
 """
 
+import pytest
+from freezegun.api import FrozenDateTimeFactory
+from homeassistant.const import STATE_OFF, STATE_ON
+from homeassistant.core import HomeAssistant
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_mock_service,
+)
+
 from custom_components.smart_ev_charging.const import (
     CONF_CHARGER_DEVICE,
     CONF_CHARGER_ENABLED_SWITCH_ID,
@@ -18,15 +27,6 @@ from custom_components.smart_ev_charging.const import (
     ENTITY_ID_SUFFIX_SOLAR_BUFFER_NUMBER,
 )
 from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
-from freezegun.api import FrozenDateTimeFactory
-import pytest
-from pytest_homeassistant_custom_component.common import (
-    MockConfigEntry,
-    async_mock_service,
-)
-
-from homeassistant.const import STATE_OFF, STATE_ON
-from homeassistant.core import HomeAssistant
 
 # Mockade entitets-ID:n och config-data definieras lokalt för detta test
 MOCK_SOLAR_PRODUCTION_SENSOR_ID = "sensor.test_solar_prod_dynamic_solar"

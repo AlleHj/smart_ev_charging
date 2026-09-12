@@ -1,5 +1,9 @@
 """Tester för grundläggande setup och unload av Smart EV Charging-integrationen."""
 
+from homeassistant.config_entries import ConfigEntryState
+from homeassistant.const import STATE_OFF, STATE_ON
+from homeassistant.core import HomeAssistant
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.smart_ev_charging.const import (
     CONF_CHARGER_DEVICE,
@@ -9,11 +13,6 @@ from custom_components.smart_ev_charging.const import (
     CONF_STATUS_SENSOR,
     DOMAIN,
 )
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-
-from homeassistant.config_entries import ConfigEntryState
-from homeassistant.const import STATE_OFF, STATE_ON
-from homeassistant.core import HomeAssistant
 
 
 async def test_load_and_unload_entry(hass: HomeAssistant):

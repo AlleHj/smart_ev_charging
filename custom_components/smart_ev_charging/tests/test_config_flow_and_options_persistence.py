@@ -8,6 +8,11 @@ import logging
 import random
 from unittest.mock import patch
 
+import pytest
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import STATE_OFF, STATE_ON
+from homeassistant.core import HomeAssistant
+
 from custom_components.smart_ev_charging.const import (
     CONF_CHARGER_DEVICE,
     CONF_CHARGER_DYNAMIC_CURRENT_SENSOR,
@@ -26,12 +31,6 @@ from custom_components.smart_ev_charging.const import (
     DEFAULT_SCAN_INTERVAL_SECONDS,
     DOMAIN,
 )
-import pytest
-
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import STATE_OFF, STATE_ON
-from homeassistant.core import HomeAssistant
-
 
 MOCK_EASEE_DEVICE_ID = "easee_mock_device_for_flow_test"
 MOCK_STATUS_SENSOR_ID = "sensor.mock_charger_status_flow"
@@ -111,7 +110,7 @@ async def test_setup_and_options_modification_flow(hass: HomeAssistant):
            - FÖRVÄNTAT: Flödet ska starta och visa ett formulär. Detta formulär
              ska (implicit) vara populerat baserat på de senast sparade värdena
              i `entry.options`.
-    """  # noqa: D205, D212
+    """
     hass.states.async_set(MOCK_STATUS_SENSOR_ID, "charging")
     hass.states.async_set(MOCK_POWER_SWITCH_ID, STATE_ON)
     hass.states.async_set(MOCK_PRICE_SENSOR_ID, "0.50")
@@ -223,7 +222,8 @@ async def test_setup_and_options_modification_flow(hass: HomeAssistant):
         updated_entry.options[CONF_EV_SOC_SENSOR] is None
     )  # Verifiera att den är borttagen/None
     assert (
-        updated_entry.options[CONF_CHARGER_DYNAMIC_CURRENT_SENSOR] == MOCK_DYN_CURRENT_LIMIT_ID
+        updated_entry.options[CONF_CHARGER_DYNAMIC_CURRENT_SENSOR]
+        == MOCK_DYN_CURRENT_LIMIT_ID
     )  # Verifiera nytt värde
     assert (
         updated_entry.options[CONF_TARGET_SOC_LIMIT] == random_soc_limit
