@@ -3,10 +3,19 @@
 när Pris/Tid-schemat blir aktivt.
 """
 
-from datetime import UTC, datetime, timedelta
 import logging
 import math
+from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
+
+import pytest
+from homeassistant.const import STATE_OFF, STATE_ON
+from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_mock_service,
+)
 
 from custom_components.smart_ev_charging.const import (
     CONF_CHARGER_DEVICE,
@@ -35,15 +44,6 @@ from custom_components.smart_ev_charging.const import (
     SOLAR_SURPLUS_DELAY_SECONDS,
 )
 from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
-import pytest
-from pytest_homeassistant_custom_component.common import (
-    MockConfigEntry,
-    async_mock_service,
-)
-
-from homeassistant.const import STATE_OFF, STATE_ON
-from homeassistant.core import HomeAssistant
-from homeassistant.util import dt as dt_util
 
 # Konstanter för testet
 PRICE_TIME_SCHEDULE_ID = "schedule.price_time_charging_20_07"
@@ -117,7 +117,7 @@ async def test_solar_to_price_time_transition(hass: HomeAssistant, caplog):
         - När klockan slår 20:00 (Pris/Tid-schema blir aktivt):
             - `active_control_mode` ska byta till `CONTROL_MODE_PRICE_TIME`.
             - `set_dynamic_current` ska anropas igen, nu med hårdvarumax (16A).
-    """  # noqa: D212
+    """
     # 1. ARRANGE
     entry = MockConfigEntry(
         domain=DOMAIN,

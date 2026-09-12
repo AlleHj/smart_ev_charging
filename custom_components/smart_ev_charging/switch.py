@@ -36,8 +36,8 @@ async def async_setup_entry(
         entities_to_add = [smart_switch, solar_switch]
         async_add_entities(entities_to_add, True) # True för att återställa tillstånd
         _LOGGER.debug("SWITCH PLATFORM: async_add_entities har anropats för %s entiteter.", len(entities_to_add))
-    except Exception as e:
-        _LOGGER.error("SWITCH PLATFORM: Fel under async_setup_entry: %s", e, exc_info=True)
+    except Exception:
+        _LOGGER.exception("SWITCH PLATFORM: Fel under async_setup_entry")
 
 
 class SmartChargingBaseSwitch(SwitchEntity, RestoreEntity):
@@ -61,7 +61,7 @@ class SmartChargingBaseSwitch(SwitchEntity, RestoreEntity):
             model="Smart EV Charger Control",
             entry_type="service"
         )
-        _LOGGER.debug("%s initialiserad med unique_id: %s. Initialt _attr_is_on: %s", self.name, self.unique_id, self._attr_is_on)
+        _LOGGER.debug("%s initialiserad med unique_id %s. Initialt _attr_is_on: %s", self.name, self.unique_id, self._attr_is_on)
 
     async def async_added_to_hass(self) -> None:
         """Körs när entiteten läggs till i Home Assistant. Återställ tidigare tillstånd."""
@@ -78,7 +78,7 @@ class SmartChargingBaseSwitch(SwitchEntity, RestoreEntity):
             elif last_state.state == STATE_OFF:
                 self._attr_is_on = False
             else:
-                _LOGGER.warning("Oväntat sparat tillstånd '%s' för %s (%s), använder default: %s.",
+                _LOGGER.warning("Oväntat sparat tillstånd '%s' för %s (%s), använder default: %s",
                                 last_state.state, self.name, self.unique_id, self._attr_is_on)
                 # self._attr_is_on behåller sitt defaultvärde från __init__
         else:
