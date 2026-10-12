@@ -1,3 +1,4 @@
+# Version: 2026-10-12 - Åtgärdat G201 och TRY401 (korrekt exception-loggning)
 # File version: 2025-06-05 0.2.0
 import logging
 
@@ -104,11 +105,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.data[DOMAIN][entry.entry_id]["coordinator"] = coordinator
         _COMPONENT_LOGGER.debug("--- DEBUG INIT: Koordinator lagrad i hass.data ---")
 
-    except Exception as e:
-        _COMPONENT_LOGGER.error(
-            "--- DEBUG INIT: FEL vid skapande eller första refresh av koordinator: %s ---",
-            e,
-            exc_info=True,
+    except Exception:
+        _COMPONENT_LOGGER.exception(
+            "--- DEBUG INIT: FEL vid skapande eller första refresh av koordinator ---"
         )
         if entry.entry_id in hass.data[DOMAIN]:
             if listener_remover := hass.data[DOMAIN][entry.entry_id].get(
@@ -124,11 +123,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             "--- DEBUG INIT: async_forward_entry_setups KLAR för plattformar: %s ---",
             PLATFORMS,
         )
-    except Exception as e:
-        _COMPONENT_LOGGER.error(
-            "--- DEBUG INIT: FEL vid async_forward_entry_setups: %s ---",
-            e,
-            exc_info=True,
+    except Exception:
+        _COMPONENT_LOGGER.exception(
+            "--- DEBUG INIT: FEL vid async_forward_entry_setups ---"
         )
         await async_unload_entry(hass, entry)
         return False
