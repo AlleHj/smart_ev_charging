@@ -1,3 +1,4 @@
+# Version: 2026-10-12 - Korrigering av G201 och SIM102 med alla kommentarer bevarade
 # File version: 2025-06-05 0.2.0 // ÄNDRA HÄR
 
 import asyncio
@@ -132,7 +133,7 @@ class SmartEVChargingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """
         reason_for_action = "Initialvärde för solenergilogik"
 
-        # Säkerställ att beräknad ström inte är negativ innan jämförelser
+        # Säkerställ että beräknad ström inte är negativ innan jämförelser
         calculated_solar_current_a = max(0.0, calculated_solar_current_a)
 
         if self._debug_logging:
@@ -271,7 +272,7 @@ class SmartEVChargingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 _LOGGER.debug("Koordinator: Interna ID:n OK.")
             return True
         except Exception as e:
-            _LOGGER.error("Fel i _resolve_internal_entities: %s", e, exc_info=True)
+            _LOGGER.exception("Fel i _resolve_internal_entities: %s", e)
             self._internal_entities_resolved = False
             return False
 
@@ -311,9 +312,8 @@ class SmartEVChargingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             _LOGGER.info("Inga externa entiteter konfigurerade för lyssning.")
 
     def _remove_listeners(self) -> None:
-        if self.listeners:
-            if self._debug_logging:
-                _LOGGER.debug("Tar bort %s lyssnare.", len(self.listeners))
+        if self.listeners and self._debug_logging:
+            _LOGGER.debug("Tar bort %s lyssnare.", len(self.listeners))
         while self.listeners:
             unsub = self.listeners.pop()
             unsub()
@@ -932,8 +932,8 @@ class SmartEVChargingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         )
         # Fångar upp eventuella oväntade fel under styrningen av laddaren.
         except Exception as e:
-            _LOGGER.error(
-                "Fel vid styrning av laddaren: %s", e, exc_info=True
+            _LOGGER.exception(
+                "Fel vid styrning av laddaren: %s", e
             )  # Logga felet med traceback.
 
     # Definierar en asynkron metod (coroutine) med namnet _async_update_data.
@@ -950,24 +950,23 @@ class SmartEVChargingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             _LOGGER.debug("Koordinatorn kör _async_update_data")
 
         # Kontrollerar om de interna entiteterna (switchar, nummer etc. som skapas av denna integration) har blivit lösta (deras entity_id har hittats).
-        if not self._internal_entities_resolved:
+        if not self._internal_entities_resolved and not await self._resolve_internal_entities():
             # Om de inte är lösta, försök att lösa dem nu genom att anropa _resolve_internal_entities.
-            if not await self._resolve_internal_entities():
-                # Om de fortfarande inte kunde lösas, logga en varning.
-                _LOGGER.warning(
-                    "Interna entiteter kunde inte lösas, avbryter uppdateringscykeln."
-                )
-                # Avbryt uppdateringscykeln och returnera befintlig data (om någon finns),
-                # annars returnera ett standardobjekt som indikerar manuellt läge och väntan.
-                # Detta förhindrar fel om integrationen inte är fullständigt initialiserad.
-                return (
-                    self.data  # Returnera tidigare data om den finns.
-                    if self.data  # Kontrollera om self.data har ett värde.
-                    else {  # Annars, returnera ett standardobjekt.
-                        "active_control_mode": CONTROL_MODE_MANUAL,  # Sätt aktivt läge till manuellt.
-                        "should_charge_reason": "Väntar på interna entiteter.",  # Ange anledning.
-                    }
-                )
+            # Om de fortfarande inte kunde lösas, logga en varning.
+            _LOGGER.warning(
+                "Interna entiteter kunde inte lösas, avbryter uppdateringscykeln."
+            )
+            # Avbryt uppdateringscykeln och returnera befintlig data (om någon finns),
+            # annars returnera ett standardobjekt som indikerar manuellt läge och väntan.
+            # Detta förhindrar fel om integrationen inte är fullständigt initialiserad.
+            return (
+                self.data  # Returnera tidigare data om den finns.
+                if self.data  # Kontrollera om self.data har ett värde.
+                else {  # Annars, returnera ett standardobjekt.
+                    "active_control_mode": CONTROL_MODE_MANUAL,  # Sätt aktivt läge till manuellt.
+                    "should_charge_reason": "Väntar på interna entiteter.",  # Ange anledning.
+                }
+            )
 
         # Hämtar den nuvarande tiden i UTC-format. Används för tidsbaserade jämförelser.
         current_time = dt_util.utcnow()
