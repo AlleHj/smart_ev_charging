@@ -1,65 +1,67 @@
 # File version: 2025-06-05 0.2.0 // ÄNDRA HÄR
 
-import logging
-from datetime import timedelta, datetime
-from typing import Any, cast
-import math
 import asyncio
+import logging
+import math
+from datetime import datetime, timedelta
+from typing import Any, cast
 
-from homeassistant.core import HomeAssistant, Event, CALLBACK_TYPE, callback
+import homeassistant.util.dt as dt_util
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-from homeassistant.helpers.entity_registry import (
-    async_get as async_get_entity_registry,
-    EntityRegistry,
-)
-from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.const import (
-    STATE_ON,
+    ATTR_ENTITY_ID,
+    SERVICE_TURN_ON,
     STATE_OFF,
+    STATE_ON,
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
-    SERVICE_TURN_ON,
-    ATTR_ENTITY_ID,
     UnitOfPower,
 )
-import homeassistant.util.dt as dt_util
+from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant, callback
+from homeassistant.helpers.entity_registry import (
+    EntityRegistry,
+)
+from homeassistant.helpers.entity_registry import (
+    async_get as async_get_entity_registry,
+)
+from homeassistant.helpers.event import async_track_state_change_event
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
-    DOMAIN,
     CONF_CHARGER_DEVICE,
-    CONF_STATUS_SENSOR,
-    CONF_PRICE_SENSOR,
-    CONF_TIME_SCHEDULE_ENTITY,
-    CONF_HOUSE_POWER_SENSOR,
-    CONF_SOLAR_PRODUCTION_SENSOR,
-    CONF_SOLAR_SCHEDULE_ENTITY,
-    CONF_CHARGER_MAX_CURRENT_LIMIT_SENSOR,
     CONF_CHARGER_DYNAMIC_CURRENT_SENSOR,
     CONF_CHARGER_ENABLED_SWITCH_ID,
+    CONF_CHARGER_MAX_CURRENT_LIMIT_SENSOR,
+    CONF_DEBUG_LOGGING,
     CONF_EV_SOC_SENSOR,
+    CONF_HOUSE_POWER_SENSOR,
+    CONF_PRICE_SENSOR,
+    CONF_SOLAR_PRODUCTION_SENSOR,
+    CONF_SOLAR_SCHEDULE_ENTITY,
+    CONF_STATUS_SENSOR,
     CONF_TARGET_SOC_LIMIT,
-    ENTITY_ID_SUFFIX_SMART_ENABLE_SWITCH,
-    ENTITY_ID_SUFFIX_MAX_PRICE_NUMBER,
-    ENTITY_ID_SUFFIX_ENABLE_SOLAR_CHARGING_SWITCH,
-    ENTITY_ID_SUFFIX_SOLAR_BUFFER_NUMBER,
-    ENTITY_ID_SUFFIX_MIN_SOLAR_CHARGE_CURRENT_A_NUMBER,
-    EASEE_STATUS_DISCONNECTED,
-    EASEE_STATUS_AWAITING_START,
-    EASEE_STATUS_READY_TO_CHARGE,
-    EASEE_STATUS_CHARGING,
-    EASEE_STATUS_PAUSED,
-    EASEE_STATUS_COMPLETED,
-    EASEE_STATUS_OFFLINE,
+    CONF_TIME_SCHEDULE_ENTITY,
+    CONTROL_MODE_MANUAL,
     CONTROL_MODE_PRICE_TIME,
     CONTROL_MODE_SOLAR_SURPLUS,
-    CONTROL_MODE_MANUAL,
-    MIN_CHARGE_CURRENT_A,
+    DOMAIN,
+    EASEE_STATUS_AWAITING_START,
+    EASEE_STATUS_CHARGING,
+    EASEE_STATUS_COMPLETED,
+    EASEE_STATUS_DISCONNECTED,
+    EASEE_STATUS_OFFLINE,
+    EASEE_STATUS_PAUSED,
+    EASEE_STATUS_READY_TO_CHARGE,
+    ENTITY_ID_SUFFIX_ENABLE_SOLAR_CHARGING_SWITCH,
+    ENTITY_ID_SUFFIX_MAX_PRICE_NUMBER,
+    ENTITY_ID_SUFFIX_MIN_SOLAR_CHARGE_CURRENT_A_NUMBER,
+    ENTITY_ID_SUFFIX_SMART_ENABLE_SWITCH,
+    ENTITY_ID_SUFFIX_SOLAR_BUFFER_NUMBER,
     MAX_CHARGE_CURRENT_A_HW_DEFAULT,
-    POWER_MARGIN_W,
+    MIN_CHARGE_CURRENT_A,
     PHASES,
+    POWER_MARGIN_W,
     VOLTAGE_PHASE_NEUTRAL,
-    CONF_DEBUG_LOGGING,
 )
 
 _LOGGER = logging.getLogger(f"custom_components.{DOMAIN}")

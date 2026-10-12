@@ -5,6 +5,16 @@
 
 from datetime import timedelta
 
+import homeassistant.util.dt as dt_util
+import pytest
+from freezegun.api import FrozenDateTimeFactory
+from homeassistant.const import STATE_OFF, STATE_ON
+from homeassistant.core import HomeAssistant
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_mock_service,
+)
+
 from custom_components.smart_ev_charging.const import (
     CONF_CHARGER_DEVICE,
     CONF_CHARGER_DYNAMIC_CURRENT_SENSOR,
@@ -28,16 +38,6 @@ from custom_components.smart_ev_charging.const import (
     ENTITY_ID_SUFFIX_SOLAR_BUFFER_NUMBER,
 )
 from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
-from freezegun.api import FrozenDateTimeFactory
-import pytest
-from pytest_homeassistant_custom_component.common import (
-    MockConfigEntry,
-    async_mock_service,
-)
-
-from homeassistant.const import STATE_OFF, STATE_ON
-from homeassistant.core import HomeAssistant
-import homeassistant.util.dt as dt_util
 
 # Lokalt definierade mock-konstanter för denna fil
 MOCK_PRICE_SENSOR_ID = "sensor.test_price_coordinator"

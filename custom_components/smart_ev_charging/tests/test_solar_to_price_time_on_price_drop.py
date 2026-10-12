@@ -3,10 +3,19 @@
 när elpriset sjunker under max acceptabelt pris.
 """
 
-from datetime import UTC, datetime, timedelta
 import logging
 import math
+from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
+
+import pytest
+from homeassistant.const import STATE_ON
+from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_mock_service,
+)
 
 from custom_components.smart_ev_charging.const import (
     CONF_CHARGER_DEVICE,
@@ -35,15 +44,6 @@ from custom_components.smart_ev_charging.const import (
     SOLAR_SURPLUS_DELAY_SECONDS,
 )
 from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
-import pytest
-from pytest_homeassistant_custom_component.common import (
-    MockConfigEntry,
-    async_mock_service,
-)
-
-from homeassistant.const import STATE_ON
-from homeassistant.core import HomeAssistant
-from homeassistant.util import dt as dt_util
 
 # Konstanter för testet
 CHARGER_DEVICE_ID = "easee_price_drop_test"

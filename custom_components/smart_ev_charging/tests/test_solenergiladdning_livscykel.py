@@ -11,6 +11,14 @@ Detta testfall säkerställer att koordinatorn korrekt hanterar hela flödet:
 
 import logging
 
+import pytest
+from homeassistant.const import STATE_OFF, STATE_ON, UnitOfPower
+from homeassistant.core import HomeAssistant
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_mock_service,
+)
+
 from custom_components.smart_ev_charging.const import (
     CONF_CHARGER_DEVICE,
     CONF_CHARGER_ENABLED_SWITCH_ID,
@@ -32,14 +40,6 @@ from custom_components.smart_ev_charging.const import (
     VOLTAGE_PHASE_NEUTRAL,
 )
 from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
-import pytest
-from pytest_homeassistant_custom_component.common import (
-    MockConfigEntry,
-    async_mock_service,
-)
-
-from homeassistant.const import STATE_OFF, STATE_ON, UnitOfPower
-from homeassistant.core import HomeAssistant
 
 # Mockade entitets-ID:n för externa sensorer
 MOCK_SOLAR_SENSOR_ID = "sensor.test_solar_production_lifecycle"
