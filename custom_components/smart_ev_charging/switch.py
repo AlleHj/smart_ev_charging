@@ -1,3 +1,4 @@
+# Version: 2026-10-12 - Åtgärdat G201 och TRY401 (korrekt exception-loggning)
 # File version: 2025-06-05 0.2.0
 import logging
 from typing import Any
@@ -36,8 +37,8 @@ async def async_setup_entry(
         entities_to_add = [smart_switch, solar_switch]
         async_add_entities(entities_to_add, True) # True för att återställa tillstånd
         _LOGGER.debug("SWITCH PLATFORM: async_add_entities har anropats för %s entiteter.", len(entities_to_add))
-    except Exception as e:
-        _LOGGER.error("SWITCH PLATFORM: Fel under async_setup_entry: %s", e, exc_info=True)
+    except Exception:
+        _LOGGER.exception("SWITCH PLATFORM: Fel under async_setup_entry")
 
 
 class SmartChargingBaseSwitch(SwitchEntity, RestoreEntity):

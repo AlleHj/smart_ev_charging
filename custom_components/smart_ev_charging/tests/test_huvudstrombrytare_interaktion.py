@@ -8,6 +8,14 @@ där laddboxens huvudströmbrytare (konfigurerad via CONF_CHARGER_ENABLED_SWITCH
 
 import logging
 
+import pytest
+from homeassistant.const import SERVICE_TURN_ON, STATE_OFF, STATE_ON
+from homeassistant.core import HomeAssistant
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_mock_service,
+)
+
 from custom_components.smart_ev_charging.const import (
     CONF_CHARGER_DEVICE,
     CONF_CHARGER_ENABLED_SWITCH_ID,
@@ -22,14 +30,6 @@ from custom_components.smart_ev_charging.const import (
     EASEE_STATUS_READY_TO_CHARGE,
 )
 from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
-import pytest
-from pytest_homeassistant_custom_component.common import (
-    MockConfigEntry,
-    async_mock_service,
-)
-
-from homeassistant.const import SERVICE_TURN_ON, STATE_OFF, STATE_ON
-from homeassistant.core import HomeAssistant
 
 # Mockade externa entitets-ID:n (som definierade i din originalfil)
 MOCK_CONFIG_ENTRY_ID = "test_main_switch_interaction_entry"

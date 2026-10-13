@@ -6,6 +6,13 @@ justeringen av laddström vid solenergiladdning.
 # Importerar nödvändiga bibliotek och moduler från pytest, Home Assistant och den egna komponenten.
 import logging
 
+from homeassistant.const import STATE_OFF, STATE_ON, UnitOfPower
+from homeassistant.core import HomeAssistant
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_mock_service,
+)
+
 # Importerar konstanter och koordinatorn från den anpassade komponenten.
 from custom_components.smart_ev_charging.const import (
     CONF_CHARGER_DEVICE,
@@ -21,13 +28,6 @@ from custom_components.smart_ev_charging.const import (
     EASEE_STATUS_READY_TO_CHARGE,
 )
 from custom_components.smart_ev_charging.coordinator import SmartEVChargingCoordinator
-from pytest_homeassistant_custom_component.common import (
-    MockConfigEntry,
-    async_mock_service,
-)
-
-from homeassistant.const import STATE_OFF, STATE_ON, UnitOfPower
-from homeassistant.core import HomeAssistant
 
 # Ställer in loggningsnivå för att fånga upp relevanta meddelanden under testkörningen.
 _LOGGER = logging.getLogger(f"custom_components.{DOMAIN}")
